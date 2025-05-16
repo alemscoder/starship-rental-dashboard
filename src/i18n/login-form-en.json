@@ -1,0 +1,15 @@
+{
+	"form": {
+		"title": "",
+		"username": "Email Address",
+		"password": "Password",
+		"submit": "Sign In",
+		"forgotPassword": "Forgot password?"
+	},
+	"errorMessage": {
+		"title": "Incorrect email or password",
+		"message": "Check that you have entered the correct email and password and try again.",
+		"username": "Email is required",
+		"password": "Password is required"
+	}
+}

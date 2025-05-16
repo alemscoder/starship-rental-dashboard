@@ -1,0 +1,45 @@
+.drawer-nav {
+	flex: none;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--lumo-space-s);
+	padding: var(--lumo-space-s);
+	position: sticky;
+	top: 0;
+	background: var(--lumo-shade-5pct);
+	box-shadow: inset -1px 0 0 0 var(--lumo-contrast-5pct);
+}
+.drawer-nav vaadin-scroller {
+	margin: -2px;
+	padding: 2px
+}
+.drawer-nav :is(.user-menu) vaadin-menu-bar-button {
+	width: var(--lumo-size-m);
+	height: var(--lumo-size-m);
+	min-width: 0;
+	padding: 0;
+	margin: 3px;
+	cursor: pointer;
+	--lumo-clickable-cursor: pointer
+}
+.drawer-nav :is(.user-menu) vaadin-menu-bar-button vaadin-avatar {
+	cursor: inherit
+}
+.drawer-nav .user-menu vaadin-menu-bar-button .status-badge {
+	outline: 1.5px solid hsl(var(--base-h) var(--base-s) var(--base-l));
+	bottom: 3px;
+	inset-inline-end: 3px
+}
+.drawer-nav .user-menu vaadin-menu-bar-button::part(suffix):after {
+	display: none
+}
+.drawer-nav vaadin-side-nav-item {
+	position: relative
+}
+.drawer-nav vaadin-side-nav-item .badge {
+	position: absolute;
+	inset-block-start: var(--lumo-space-s);
+	inset-inline-end: var(--lumo-space-s);
+	margin: 0
+}

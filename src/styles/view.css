@@ -1,0 +1,37 @@
+.View {
+	height: 100%;
+	max-height: 100%;
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	background: var(--view-background);
+	contain: layout;
+}
+.View .View {
+	background: transparent;
+}
+vaadin-app-layout>.View-container>.View, 
+.View:where(.framed) {
+	margin: var(--view-inset, var(--lumo-space-s));
+	margin-inline-start: var(--lumo-space-s);
+	height: calc(100% - var(--view-inset, var(--lumo-space-s))* 2);
+	max-height: calc(100% - var(--view-inset, var(--lumo-space-s))* 2);
+	border-radius: var(--view-inset, var(--lumo-border-radius-l));
+	box-shadow: var(--view-box-shadow);
+	padding-left: var(--safe-area-inset-left);
+	padding-right: var(--safe-area-inset-right);
+}
+@media (max-width: 599px),(max-height: 599px) {
+	vaadin-app-layout>.View-container {
+		overflow: hidden;
+	}
+	vaadin-app-layout>.View-container>.View {
+		--view-outset: 4px;
+		margin: calc(var(--view-outset) * -1);
+		padding: var(--view-outset);
+		padding-left: calc(var(--safe-area-inset-left) + var(--view-outset));
+		padding-right: calc(var(--safe-area-inset-right) + var(--view-outset));
+		max-height: calc(100% + var(--view-outset) * 2);
+		height: calc(100% + var(--view-outset) * 2)
+	}
+}

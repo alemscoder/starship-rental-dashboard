@@ -1,0 +1,15 @@
+vaadin-menu-bar-overlay::part(content) {
+	padding: var(--lumo-space-s);
+}
+vaadin-menu-bar-item.uncheckable {
+	padding-inline-start: var(--lumo-space-s);
+}
+vaadin-menu-bar-item {
+	border-radius: var(--lumo-border-radius-s);
+}
+vaadin-menu-bar-item.uncheckable::part(checkmark) {
+	display: none;
+}
+vaadin-menu-bar-item vaadin-icon {
+	color: var(--lumo-secondary-text-color);
+}

@@ -1,0 +1,15 @@
+{
+	"form": {
+		"title": "",
+		"username": "Correo electronico",
+		"password": "Contraseña",
+		"submit": "Iniciar sesión",
+		"forgotPassword": "¿Has olvidado tu contraseña?"
+	},
+	"errorMessage": {
+		"title": "Correo electronico o contraseña incorrecta",
+		"message": "Verifique que haya ingresado el correo electronico y la contraseña correctos e inténtelo nuevamente.",
+		"username": "Se requiere correo electronico",
+		"password": "Se requiere contraseña"
+	}
+}

@@ -1,0 +1,153 @@
+.Panels {
+	display: grid;
+	grid-template-areas: "persistent normal";
+	grid-template-columns: 0fr 1fr;
+	align-items: start;
+	overflow: hidden;
+	height: var(--height);
+	transition: grid-template-columns var(--panel-transition-duration)
+}
+.Panels.prevent-transition {
+	--panel-transition-duration: 0s
+}
+.Panels-panel {
+	align-self: stretch;
+	grid-column: normal;
+	grid-row: 1 / 2;
+	display: grid;
+	grid-template-rows: var(--height, 0fr);
+	transition: grid-template-rows var(--panel-transition-duration) .1s,translate var(--panel-transition-duration),opacity var(--panel-transition-duration),clip-path var(--panel-transition-duration),visibility var(--panel-transition-duration);
+	min-height: 0;
+	height: var(--height);
+	clip-path: inset(0)
+}
+.Panels-panel-wrapper {
+	min-height: 0;
+	height: var(--height)
+}
+.Panels-panel[data-active=false] {
+	visibility: hidden;
+	translate: -20% 0%;
+	opacity: 0
+}
+.Panels-panel[data-active=false] {
+	clip-path: inset(0 80% 0 0)
+}
+.Panels-panel[data-active=true] {
+	grid-template-rows: 1fr;
+	translate: none;
+	transition-delay: 0s;
+	z-index: 1;
+	clip-path: inset(-100% 0 -100% -100%)
+}
+.Panels-panel[data-active=true]~.Panels-panel {
+	translate: 100% 0%;
+	opacity: 1;
+	z-index: 1;
+	clip-path: inset(0)
+}
+.Panels-panel[data-active=false]:not([data-persistent=true])>* {
+	visibility: inherit!important;
+	transition: visibility var(--panel-transition-duration)!important;
+	pointer-events: none!important
+}
+.Panels-panel:not([data-persistent=true]):not(:first-child) vaadin-drawer-toggle {
+	display: none
+}
+.Panels-panel[data-persistent=true] .Panels-panel-wrapper {
+	min-width: 0
+}
+.Panels-panel ::part(nav-item) {
+	transition: background-color .1s var(--nav-item-transition-delay, var(--panel-transition-duration));
+	position: relative
+}
+@media (any-hover: hover) {
+	.Panels-panel:hover {
+		--nav-item-transition-delay: 0s
+	}
+	.Panels-panel :is(.tickets-view vaadin-grid)::part(row):hover,
+	.Panels-panel :is(.customers-view vaadin-grid)::part(row):hover,
+	.Panels-panel :is(.locations-view vaadin-grid)::part(row):hover,
+	.Panels-panel :is(.starships-view vaadin-grid)::part(row):hover,
+	.Panels-panel :is(.messages-view vaadin-grid)::part(row):hover,
+	.Panels-panel :is(.employees-view vaadin-grid)::part(row):hover {
+		--vaadin-grid-cell-background: var(--lumo-contrast-5pct)
+	}
+}
+.Panels-panel ::part(active-nav-item) {
+	--nav-item-transition-delay: 0s;
+	background: var(--lumo-contrast-10pct)
+}
+.Panels-panel ::part(nav-item) {
+	background-clip: padding-box
+}
+@container View (min-width: 601px) {
+	.Panels {
+		--overlay-panel-width: 28rem;
+		grid-template-columns: minmax(var(--persistent-panel-min-width, auto),var(--persistent-panel-max-width, 0)) minmax(var(--panel-min-width, auto),1fr)
+	}
+	.Panels-panel[data-persistent=true] {
+		grid-column: persistent;
+		grid-template-rows: 1fr;
+		visibility: visible;
+		translate: none;
+		opacity: 1;
+		clip-path: inset(0)
+	}
+	.Panels-panel[data-persistent=true]~.Panels-panel[data-active=false] {
+		translate: none;
+		grid-template-rows: 1fr;
+		opacity: 0;
+		clip-path: inset(0)
+	}
+	.Panels-panel[data-persistent=true]~.Panels-panel[data-active=true]:not([data-overlay=true]),
+	.Panels-panel[data-active=true][data-persistent=true]~.Panels-panel[data-active=false][data-placeholder=true] {
+		box-shadow:-1px 0 0 0 var(--lumo-contrast-10pct)
+	}
+	[theme~=dark] .Panels-panel[data-persistent=true]~.Panels-panel[data-active=true]:not([data-overlay=true]),
+	[theme~=dark] .Panels-panel[data-active=true][data-persistent=true]~.Panels-panel[data-active=false][data-placeholder=true] {
+		box-shadow:inset 1px 0 0 0 var(--lumo-contrast-10pct)
+	}
+	.Panels-panel[data-persistent=true]~.Panels-panel .View-header .back {
+		display: none
+	}
+	.Panels.has-persistent-active {
+		--persistent-panel-min-width: 100%
+	}
+	.Panels-panel~.Panels-panel[data-active=false][data-placeholder=true] {
+		visibility: visible;
+		opacity: 1
+	}
+	.Panels-panel[data-active=true]:not([data-persistent=true])~.Panels-panel[data-active=false][data-placeholder=true] {
+		visibility:hidden;
+		opacity: 0;
+		clip-path: inset(0)
+	}
+	.Panels-panel[data-overlay=true] {
+		grid-column: persistent;
+		width: var(--overlay-panel-width, auto);
+		margin-inline-start:auto;background: var(--view-background);
+		-webkit-backdrop-filter: blur(10px);
+		backdrop-filter: blur(10px);
+		box-shadow: inset 0 0 0 1px var(--lumo-tint-10pct),-1px 0 0 0 var(--lumo-shade-5pct),var(--lumo-box-shadow-l)
+	}
+	.Panels-panel[data-overlay=true][data-active=false][data-active=false] {
+		translate: 100% 0;
+		opacity: 1;
+		transition-duration: var(--panel-transition-duration)
+	}
+}
+@container View (max-width: 600px) {
+	.Panels-panel .View-header .close {
+		display: none
+	}
+}
+@media (prefers-reduced-motion) {
+	.Panels,.Panels-panel {
+		translate: none!important;
+		transition: none!important
+	}
+	.Panels-panel[data-active=false]:not([data-persistent=true])>* {
+		transition: none!important
+	}
+}

@@ -1,0 +1,19 @@
+vaadin-notification-card[theme~=contrast]::part(overlay) {
+	background: var(--lumo-contrast);
+}
+vaadin-notification-card pre {
+	margin: 0;
+}
+@media (width < 500px) {
+	vaadin-notification-card {
+		width: fit-content;
+	}
+	vaadin-notification-card pre {
+		font-size: var(--lumo-font-size-xs);
+	}
+}
+@media (width < 421px) {
+	vaadin-notification-card pre {
+		white-space: normal;
+	}
+}

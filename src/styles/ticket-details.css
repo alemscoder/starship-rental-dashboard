@@ -1,0 +1,6 @@
+.tickets-view .ticket-details vaadin-tabs::part(tabs) {
+	justify-content: space-evenly;
+}
+.tickets-view .ticket-details[overflow~=bottom]::part(content) {
+	border-bottom: 1px solid var(--lumo-contrast-10pct)
+}

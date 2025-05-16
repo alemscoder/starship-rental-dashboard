@@ -1,0 +1,22 @@
+vaadin-dialog-overlay.notifications::part(backdrop) {
+	opacity: 0
+}
+vaadin-dialog-overlay.notifications {
+	margin-bottom: var(--lumo-size-m);
+	margin-inline-start:var(--lumo-size-l);align-items: start
+}
+vaadin-dialog-overlay.notifications:after {
+	flex: none
+}
+vaadin-dialog-overlay.notifications [slot=header-content] {
+	display: contents
+}
+vaadin-dialog-overlay.notifications a {
+	text-decoration: none
+}
+vaadin-dialog-overlay.notifications a:is(:hover,:focus) {
+	background: var(--lumo-contrast-5pct)
+}
+vaadin-dialog-overlay.notifications::part(overlay) {
+	width: 22em
+}

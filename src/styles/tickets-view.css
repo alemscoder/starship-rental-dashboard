@@ -1,0 +1,16 @@
+.tickets-view.View.Panels {
+	--height: 100%;
+	--persistent-panel-min-width: 100%;
+	--vaadin-grid-cell-padding: var(--lumo-space-l) var(--lumo-space-l)
+}
+
+@container View (min-width: 601px) {
+	.tickets-view.View.Panels {
+		--vaadin-grid-cell-padding: 0;
+		background: transparent;
+		box-shadow: none;
+		--view-inset: 0px;
+		border-radius: 0;
+		margin: 0
+	}
+}

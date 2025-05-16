@@ -1,0 +1,25 @@
+.login-view vaadin-login-form-wrapper {
+	background: transparent;
+	overflow: visible;
+	--lumo-required-field-indicator: none;
+	width: 100%;
+}
+.login-view vaadin-login-form-wrapper::part(form) {
+	padding: 0;
+	gap: var(--lumo-space-m);
+}
+.login-view vaadin-login-form-wrapper::part(form-title) {
+	display: none;
+}
+.login-view vaadin-login-form-wrapper::part(error-message) {
+	margin: 0;
+	padding-left: var(--lumo-space-xl);
+}
+.login-view vaadin-login-form-wrapper::part(footer) {
+	text-align: center;
+}
+.login-view vaadin-login-form-wrapper form {
+	display: flex;
+	flex-direction: column;
+	gap: var(--lumo-space-m);
+}

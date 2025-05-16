@@ -1,0 +1,55 @@
+vaadin-app-layout {
+	--vaadin-app-layout-drawer-width: 20em;
+	--drawer-toggle-display: flex;
+	width: 100%
+}
+vaadin-app-layout::part(navbar) {
+	background: transparent;
+	border-bottom: 0;
+	min-height: auto;
+}
+vaadin-app-layout::part(drawer) {
+	background: transparent;
+	border: 0;
+	box-shadow: none;
+	flex-direction: row;
+	gap: var(--lumo-space-s)
+}
+vaadin-app-layout[overlay]>.View-container {
+	transition: transform .4s, filter .4s, opacity .4s, grid-template-columns var(--panel-transition-duration);
+	will-change: transform, filter, opacity;
+}
+vaadin-app-layout[overlay][drawer-opened]>.View-container {
+	transform: scale(.95);
+	filter: blur(10px)
+}
+vaadin-app-layout[overlay]::part(drawer) {
+	transform-origin: 0% 50%;
+	transform: none;
+	transition: transform .2s,opacity .2s,visibility .4s
+}
+vaadin-app-layout[overlay]:not([drawer-opened])::part(drawer) {
+	transform: translate(-100%);
+	opacity: 0
+}
+vaadin-app-layout.prevent-drawer-transition:not([drawer-opened])::part(drawer) {
+	transition: none
+}
+vaadin-app-layout[overlay]::part(backdrop) {
+	background: var(--bg);
+	background-blend-mode: var(--bg-blend)
+}
+vaadin-app-layout[overlay][drawer-opened]::part(backdrop) {
+	opacity: .6
+}
+@media (prefers-reduced-motion) {
+	vaadin-app-layout,vaadin-app-layout::part(drawer) {
+		transition: none
+	}
+	vaadin-app-layout[overlay][drawer-opened]>.View-container {
+		transform: none
+	}
+	vaadin-app-layout[overlay]:not([drawer-opened])::part(drawer) {
+		transform: none
+	}
+}

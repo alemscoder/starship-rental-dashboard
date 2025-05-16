@@ -1,0 +1,87 @@
+.tickets-view vaadin-grid::part(body-cell) {
+	border-top-color: var(--lumo-contrast-20pct)
+}
+.tickets-view vaadin-grid[overflow=bottom]::part(body-cell) {
+	border-top: 1px solid;
+	border-top-color: var(--lumo-contrast-20pct)
+}
+@container View (min-width: 601px) {
+	.tickets-view vaadin-grid::part(body-cell) {
+		margin: var(--lumo-space-s) var(--lumo-space-s);
+		border-top:0;
+		border-radius: calc(var(--lumo-border-radius-l) + var(--lumo-space-s))
+	}
+	.tickets-view .ticket-row {
+		background: var(--view-background);
+		padding: var(--lumo-space-l) var(--lumo-space-l);
+		border-radius: var(--lumo-border-radius-l);
+		box-shadow: var(--view-box-shadow);
+		overflow: hidden
+	}
+	.tickets-view vaadin-grid::part(active-nav-item) {
+		--view-box-shadow: 0 0 0 2px var(--lumo-primary-color-50pct)
+	}
+	.tickets-view .ticket-row .footer {
+		margin: calc(var(--lumo-space-l) * -1);
+		margin-top: var(--lumo-space-s);
+		padding: var(--lumo-space-m) var(--lumo-space-l);
+		background-color: var(--lumo-shade-5pct)
+	}
+	.tickets-view .ticket-row .status {
+		order: 1
+	}
+}
+.tickets-view .ticket-row :is(.rented-in,.deliver-in) {
+	flex-shrink: 1;
+	min-width: 5em;
+	white-space: normal
+}
+.tickets-view .ticket-row :is(.rented-in,.deliver-in) .rent-location {
+	font-size: var(--lumo-font-size-l);
+	font-weight: 700;
+	color: var(--lumo-header-text-color)
+}
+.tickets-view .ticket-row :is(.rented-in,.deliver-in) .date {
+	font-size: var(--lumo-font-size-m);
+	font-weight: 500;
+	color: var(--lumo-secondary-text-color)
+}
+.tickets-view .ticket-row .duration {
+	flex-grow: 1;
+	margin: 0 7%;
+	align-self: center;
+	text-align: center;
+	white-space: normal;
+	font-size: var(--lumo-font-size-xs);
+	color: var(--lumo-secondary-text-color)
+}
+.tickets-view .ticket-row .duration vaadin-icon {
+	width: 100%;
+	height: var(--lumo-font-size-xl);
+	position: relative;
+	margin-bottom: var(--lumo-space-xs)
+}
+.tickets-view .ticket-row .duration vaadin-icon:before,
+.tickets-view .ticket-row .duration vaadin-icon:after {
+	content: "•";
+	position: absolute;
+	left: 0;
+	right: calc(50% + 15px);
+	top: calc(var(--lumo-font-size-xl) / 2 - 3px);
+	text-align: start;
+	height: 4px;
+	background: linear-gradient(90deg,var(--lumo-contrast-30pct) 2px,transparent 3px);
+	background-size: 8px 2px;
+	background-repeat: repeat-x;
+	background-position: 0 2px;
+	line-height: 0;
+	font-size: 25px;
+	text-indent: -12px;
+	color: var(--lumo-contrast-40pct)
+}
+.tickets-view .ticket-row .duration vaadin-icon:after {
+	left: calc(50% + 18px);
+	right: 0;
+	text-align: end;
+	text-indent: 100%
+}

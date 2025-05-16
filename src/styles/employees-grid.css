@@ -1,0 +1,20 @@
+.employees-view vaadin-grid {
+	--vaadin-grid-cell-padding: var(--lumo-space-s)
+}
+.employees-view vaadin-grid::part(row) {
+	padding-inline-start:var(--lumo-space-s);
+	padding-inline-end:var(--lumo-space-s);
+	padding-bottom: 1px
+}
+.employees-view vaadin-grid::part(first-header-row-cell first-column-cell) {
+	margin-inline-start:calc(var(--lumo-space-s) * -1)
+}
+.employees-view vaadin-grid::part(first-header-row-cell last-column-cell) {
+	margin-inline-end:calc(var(--lumo-space-s) * -1)
+}
+.employees-view vaadin-grid::part(body-cell first-column-cell) {
+	border-radius:var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m)
+}
+.employees-view vaadin-grid::part(body-cell last-column-cell) {
+	border-radius:0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0
+}

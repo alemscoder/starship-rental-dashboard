@@ -1,0 +1,104 @@
+vaadin-dialog-overlay.command-palette:before {
+	flex: .25;
+}
+vaadin-dialog-overlay.command-palette::part(overlay) {
+	width: 40em;
+	max-height: 100%;
+}
+vaadin-dialog-overlay.command-palette::part(header) {
+	padding: 0;
+}
+vaadin-dialog-overlay.command-palette::part(header-content) {
+	display: block;
+}
+vaadin-dialog-overlay.command-palette vaadin-text-field::part(input-field) {
+	--vaadin-input-field-border-width: 0px;
+	--vaadin-input-field-background: transparent;
+	--vaadin-input-field-border-radius: 0;
+	padding: var(--lumo-space-xs) var(--lumo-space-m);
+	gap: var(--lumo-space-xs);
+	box-shadow: 0 1px 0 0 var(--lumo-contrast-10pct)
+}
+vaadin-dialog-overlay.command-palette vaadin-text-field::part(input-field):after {
+	display: none
+}
+.command-palette vaadin-text-field[has-value] .key {
+	display: none
+}
+.command-palette .key {
+	padding: .2em .3em;
+	border-radius: var(--lumo-border-radius-s);
+	border: 1px solid var(--lumo-contrast-10pct);
+	background: var(--lumo-contrast-10pct);
+	line-height: 1;
+}
+.command-palette-suggestions .ai-prompts vaadin-icon {
+	color: var(--lumo-primary-color);
+}
+.command-palette-suggestions h4 vaadin-icon, 
+.command-palette-keyboard-shortcuts .key vaadin-icon {
+	width: 1em;
+	height: 1em;
+	display: block;
+}
+.command-palette-suggestions vaadin-icon {
+	color: var(--lumo-secondary-text-color);
+}
+.command-palette-suggestions :is(vaadin-button,a) {
+	display: flex;
+	align-items: center;
+	text-align: start;
+	color: inherit;
+	padding: var(--lumo-space-s) calc(var(--lumo-space-m) / 2);
+	height: auto;
+	margin: 0 calc(var(--lumo-space-m) / 1.5);
+	border-radius: var(--lumo-border-radius-m);
+	background: transparent;
+	font-weight: 500;
+	line-height: var(--lumo-line-height-xs);
+	gap: var(--lumo-space-s);
+	text-decoration: none;
+}
+.command-palette-suggestions vaadin-button::part(label) {
+	width: 100%;
+	text-align: start;
+	padding: 0;
+	overflow: visible;
+	text-overflow: visible;
+	white-space: normal
+}
+.command-palette-suggestions vaadin-button::part(prefix) {
+	margin: 0;
+	margin-inline-end:var(--lumo-space-s)
+}
+.command-palette-suggestions vaadin-icon.purple {
+	color: #9452ff;
+}
+.command-palette-suggestions vaadin-icon.blue {
+	color: #52a8ff;
+}
+.command-palette-suggestions vaadin-icon.green {
+	color: #00b865;
+}
+.command-palette-suggestions vaadin-icon.orange {
+	color: #eb8100;
+}
+.command-palette-suggestions a:is(:hover,:focus-visible) {
+	background: var(--lumo-contrast-5pct);
+}
+.command-palette-suggestions :is(button,a) em {
+	font-style: normal;
+	font-weight: 600;
+	color: var(--lumo-header-text-color);
+}
+.command-palette-suggestions :is(button,a) em span {
+	font-weight: 450;
+	font-size: var(--lumo-font-size-s);
+	opacity: .7;
+}
+.command-palette-keyboard-shortcuts {
+	background-color: hsl(var(--base-h) calc(var(--base-s) / 2) calc(var(--base-l) + 1%));
+}
+[theme~=dark] .command-palette-keyboard-shortcuts {
+	background-color: hsl(var(--base-h) var(--base-s) calc(var(--base-l) + 6%));
+}

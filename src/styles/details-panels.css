@@ -1,0 +1,26 @@
+@container (max-width: 600px) {
+	.Panels-panel .View-header .close {
+		display: none
+	}
+}
+
+.location-profile-view vaadin-avatar,
+.employee-profile-view vaadin-avatar {
+	width: 128px;
+	height: 128px;
+	margin: var(--lumo-space-l);
+	translate: 0 50%;
+	background: var(--lumo-tint);
+	color: var(--lumo-shade-90pct);
+	box-shadow: var(--lumo-box-shadow-l);
+	border: 0;
+}
+
+.location-profile-view .hero,
+.employee-profile-view .hero,
+.starship-profile-view .hero {
+	background: var(--hero-image);
+	background-blend-mode: normal, overlay;
+	background-size: cover;
+	background-position: 0% 40%
+}

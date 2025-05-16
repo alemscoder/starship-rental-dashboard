@@ -1,0 +1,37 @@
+.View-header {
+	flex: none;
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: var(--lumo-space-s) 0;
+	padding: var(--lumo-space-s);
+	min-height: var(--lumo-size-m);
+}
+.View-header :is(h1,h2,h3,h4,h5,h6) {
+	font-size: var(--lumo-font-size-l);
+	font-weight: 700;
+	color: var(--lumo-header-text-color);
+	flex: 1;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	margin: 0 var(--lumo-space-s);
+}
+.View-header :is(vaadin-drawer-toggle,vaadin-button) {
+	margin: 0;
+}
+.View-header vaadin-drawer-toggle {
+	color: var(--lumo-secondary-text-color);
+	width: var(--lumo-size-m);
+	height: var(--lumo-size-m);
+	display: var(--drawer-toggle-display, none);
+}
+.View-header vaadin-button[theme~=icon] {
+	width: var(--lumo-size-m);
+	height: var(--lumo-size-m);
+}
+@container (max-width: 600px) {
+	.Panels-panel .View-header .close {
+		display: none
+	}
+}

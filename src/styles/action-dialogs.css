@@ -1,0 +1,112 @@
+vaadin-dialog-overlay.edit::part(header),
+vaadin-dialog-overlay.new::part(header) {
+	padding-top: var(--lumo-space-s);
+	padding-bottom: 0;
+}
+
+vaadin-dialog-overlay.edit vaadin-horizontal-layout {
+	--lumo-required-field-indicator: none;
+	width: 600px;
+  max-width: 100%;
+  align-items: baseline;
+}
+vaadin-dialog-overlay.new vaadin-vertical-layout {
+	--lumo-required-field-indicator: none;
+	width: 300px;
+	max-width: 100%;
+	align-items: stretch;
+	padding: var(--lumo-space-l);
+	padding-top: 0;
+}
+
+vaadin-dialog-overlay.edit vaadin-avatar,
+vaadin-dialog-overlay.new vaadin-avatar {
+	background: var(--lumo-tint);
+	color: var(--lumo-shade-90pct);
+	box-shadow: var(--lumo-box-shadow-l);
+	border: 0;
+}
+vaadin-dialog-overlay.edit vaadin-avatar {
+	width: 90px;
+	height: 90px;
+	margin: var(--lumo-space-s);
+	translate: 0 50%;
+}
+vaadin-dialog-overlay.new vaadin-avatar {
+	width: 70px;
+	height: 70px;
+	margin: 0 auto;
+}
+
+vaadin-dialog-overlay.edit .hero {
+	background: var(--hero-image);
+	background-blend-mode: normal, overlay;
+	background-size: cover;
+	background-position: 0% 40%
+}
+
+vaadin-dialog-overlay.edit.starship .hero {
+	height: 200px;
+	margin: 0;
+	padding: 0;
+	background-size: 100% 100%;
+	background-position: center;
+}
+
+vaadin-dialog-overlay.edit #addAvatarImage,
+vaadin-dialog-overlay.edit #addHeroImage,
+vaadin-dialog-overlay.new #addAvatarImage {
+	position: absolute;
+	background-color: rgba(15, 20, 25, 0.40);
+	color: white;
+	backdrop-filter: blur(4px);
+	z-index: 999;
+}
+
+vaadin-dialog-overlay.edit #addAvatarImage {
+	left: 35%;
+	top: 75%;
+}
+vaadin-dialog-overlay.new #addAvatarImage {
+	left: 45%;
+	top: 25%;
+}
+
+vaadin-dialog-overlay.edit #addHeroImage {
+	left: 45%;
+	top: 40%;
+}
+
+vaadin-dialog-overlay.edit #removeAvatarImage,
+vaadin-dialog-overlay.edit #removeHeroImage,
+vaadin-dialog-overlay.new #removeAvatarImage {
+	position: absolute;
+	z-index: 999;
+	scale: 1;
+	transition: scale .3s ease-in-out;
+
+	@starting-style {
+		scale: 0;
+	}
+}
+
+vaadin-dialog-overlay.edit #removeAvatarImage {
+	left: 70%;
+	top: 100%;
+}
+vaadin-dialog-overlay.new #removeAvatarImage {
+	left: 55%;
+	top: 65%;
+}
+
+vaadin-dialog-overlay.edit #removeHeroImage {
+	right: 1%;
+	top: 95%;
+}
+
+vaadin-dialog-overlay.edit #removeAvatarImage[hidden],
+vaadin-dialog-overlay.edit #removeHeroImage[hidden],
+vaadin-dialog-overlay.new #removeAvatarImage[hidden] {
+	transition: scale .3s ease, display .3s ease allow-discrete;
+	scale: 0;
+}

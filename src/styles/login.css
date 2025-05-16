@@ -1,0 +1,56 @@
+.login-container {
+	perspective: 1000px;
+	display: flex;
+	height: 100%;
+	align-items: center;
+}
+.login-container .login-view {
+	animation: login-enter .8s .4s cubic-bezier(.165,.84,.44,1) both;
+	transform-origin: 50% 100%;
+	display: flex;
+	margin: auto;
+	width: 22em;
+	max-width: 96%;
+	height: min-content;
+}
+.login-container .login-view .View-header {
+	height: auto;
+	padding: var(--lumo-space-xl);
+	padding-bottom: var(--lumo-space-l);
+	flex-direction: column;
+	gap: var(--lumo-space-xs);
+	justify-content: center;
+}
+.login-container .login-view .View-header h1 {
+	flex: none;
+	background: radial-gradient(at 20% 0%, var(--lumo-contrast-50pct), var(--lumo-header-text-color) 60%);
+	width: min-content;
+	margin: 0;
+	padding-inline-end: .1em;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	font-weight: 850;
+	font-size: var(--lumo-font-size-xxl);
+	letter-spacing: -.05em;
+	line-height: normal;
+}
+[theme~=dark] .login-container .login-view h1 {
+	background-image: radial-gradient(circle at 100% 100%, var(--lumo-contrast-70pct), var(--lumo-header-text-color) 90%);
+}
+.login-container .login-view .Panels-panel {
+	padding: var(--lumo-space-xl);
+	padding-top: 0;
+}
+.login-container .login-view vaadin-button[slot=forgot-password] {
+	cursor: pointer;
+}
+.login-container .login-view vaadin-button[theme~=primary]:not(:first-child) {
+	margin-top: var(--lumo-space-m);
+}
+@keyframes login-enter {
+	0% {
+		opacity: 0;
+		transform: scale(.95) translateY(70px) rotateX(30deg)
+	}
+}

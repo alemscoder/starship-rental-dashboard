@@ -7,6 +7,7 @@ import type { MiddlewareHandler } from "astro"
 const rootRoute = ["(|/)"]
 const loginRoute = ["/login(|/)"]
 const protectedRoutes = [
+	"/(|/)",
 	"/rentals(|/**)",
 	"/ships(|/**)",
 	"/support(|/**)",

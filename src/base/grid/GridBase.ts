@@ -1,4 +1,5 @@
 import router from "@router/router.ts"
+import { actions } from "astro:actions"
 import { Toast } from "@components/Toast.ts"
 import { debounce } from "@utils/debounce.ts"
 import { browserClient } from "@lib/client.ts"
@@ -714,7 +715,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 				if (payload.message.includes("Access token has expired")) {
 					console.log("The Realtime System has detected that the access token has expired.")
 					unsubscribeFrom(this.getRealtimeChannelName())
-					const { error } = await this.supabase.auth.refreshSession()
+					const { error } = await actions.session.refreshSession()
 					if (error) {
 						await handleLogoutAndRedirect()
 						Toast({ 

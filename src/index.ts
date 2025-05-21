@@ -2,7 +2,6 @@
 import "urlpattern-polyfill"
 import "@router/router.ts"
 import { monitorNetworkStatus } from "@utils/monitor-network-status.ts"
-import { handleVisibilityChange } from "@controllers/handle-visibility-change.ts"
 import { loadSystemTheme, loadPreferredTheme } from "@controllers/handle-theme.ts"
 
 /** Vaadin imports */
@@ -75,6 +74,5 @@ document.body.classList.add("ready")
 matchMedia(
 	"(prefers-color-scheme: dark)"
 ).addEventListener("change", loadSystemTheme)
-handleVisibilityChange()
 loadPreferredTheme()
 monitorNetworkStatus()

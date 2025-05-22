@@ -1,5 +1,4 @@
 import router from "@router/router.ts"
-import { actions } from "astro:actions"
 import { Toast } from "@components/Toast.ts"
 import { checkCurrentSession } from "@controllers/check-current-session.ts"
 import { handleLogoutAndRedirect } from "@controllers/handle-logout-and-redirect.ts"
@@ -12,9 +11,13 @@ import type { Context } from "@thepassle/app-tools/router.js"
  * - If the route is `/login`, it skips validation.
  * - If the session is valid, it allows access.
  * - If there are network or request errors, it displays a toast notification and prevents access.
- * - If the session token is expired, it attempts to refresh the session and notifies the user.
+ * - If the session token is expired, it shows a countdown notification and triggers a page reload
+ *	 to let the middleware handle session refresh.
  * - If session refresh fails or other errors occur, it logs the user out, redirects as needed, 
  * 	 and displays an error message.
+ * @note The page reload approach on JWT expiration is implemented to handle Chrome Android's
+ * "page discarding" behavior, which automatically reloads pages left in background or when is 
+ * closed from the recent apps and open again.
  * @param routeContext - The context object for the current route, containing information such as the URL.
  * @returns A promise that resolves to `true` if access should be prevented (e.g., due to invalid 
  * session or errors), or `false` if access is allowed.
@@ -45,18 +48,19 @@ export async function handleSessionValidation(routeContext: Context) {
 		!currentSession.isValidSession &&
 		currentSession.actionError?.message.includes("jwt expired")
 	) {
-		Toast({ message: "User access token expired, refreshing session..." })
-		const { data, error } = await actions.session.refreshSession()
-		if (data) {
-			Toast({ message: data.message })
-		}
-		if (error) {
-			await handleLogoutAndRedirect()
-			Toast({
-				message: `Error refreshing session. \nCause: ${error.message}`,
-				duration: -1
-			})
-		}
+		let secondsLeft = 5
+		Toast({ message: `User access token expired, refreshing session in ${secondsLeft} seconds` })
+		const countdownInterval = setInterval(() => {
+			secondsLeft--
+			const toastMessage = document.querySelector<HTMLPreElement>("vaadin-notification-card pre")
+			if (toastMessage) {
+				toastMessage.textContent = `User access token expired, refreshing session in ${secondsLeft} seconds`
+			}
+			if (secondsLeft <= 0) {
+				clearInterval(countdownInterval)
+				location.reload()
+			}
+		}, 1000)
 		return true
 	}
 	await handleLogoutAndRedirect()

@@ -34,7 +34,10 @@ export function serverClient(context?: APIContext | ActionAPIContext) {
 		{
 			cookies: {
 				getAll() {
-					return parseCookieHeader(context?.request.headers.get("Cookie") ?? "")
+					const parsedCookies = parseCookieHeader(context?.request.headers.get("Cookie") ?? "")
+					return parsedCookies
+						.filter((cookie) => cookie.value !== undefined)
+						.map((cookie) => ({ name: cookie.name, value: cookie.value! }))
 				},
 				setAll(cookiesToSet) {
 					cookiesToSet.forEach(({ name, value, options }) =>

@@ -1,4 +1,4 @@
-import { html, render } from "lit-html"
+import { html, nothing, render } from "lit-html"
 import { HeaderSection } from "@sections/HeaderSection.ts"
 import { SignInSection } from "@sections/SignInSection.ts"
 import { UserRegister } from "@components/UserRegister.ts"
@@ -8,6 +8,17 @@ import "@styles/login.css"
 export async function Login() {
 	
 	const container = document.querySelector("#outlet") as HTMLDivElement
+
+	const demoSignInPanelTemplate = async () => {
+		const { DemoSignIn } = await import("@components/DemoSignIn.ts")
+		return html`
+			<div class="Panels-panel" id="demoSignInPanel" data-active="false">
+				<div class="Panels-panel-wrapper">
+					${DemoSignIn()}
+				</div>
+			</div>
+		`
+	}
 	
 	const template = html`
 		<div class="login-container">
@@ -25,6 +36,7 @@ export async function Login() {
 								${await SignInSection()}
 							</div>
 						</div>
+						${import.meta.env.PUBLIC_APP_DEMO_MODE === "true" ? await demoSignInPanelTemplate() : nothing}
 						<div class="Panels-panel" id="registerPanel" data-active="false">
 							<div class="Panels-panel-wrapper">
 								${UserRegister()}

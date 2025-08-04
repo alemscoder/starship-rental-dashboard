@@ -42,6 +42,9 @@ export const POST: APIRoute = async (context) => {
 		if (error || !user) {
 			throw new AuthError(error?.message!, error?.status)
 		}
+		if (import.meta.env.PUBLIC_APP_DEMO_MODE === "true") {
+			throw new Error("Action not allowed in Demo Mode.")
+		}
 		// Check if the role is admin to determine which update method to use
 		if (user.app_metadata.role === "admin") {
 			// update employee using Supabase admin client
@@ -209,6 +212,9 @@ export const POST: APIRoute = async (context) => {
 		}
 		if (error instanceof StorageError) {
 			return new Response(error.message, { status: 404 })
+		}
+		if (error instanceof Error && error.message.includes("Demo Mode")) {
+			return new Response(error.message, { status: 401 })
 		}
 		return new Response("An unexpected error occurred: " + error.message, { status: 500 })
 	}

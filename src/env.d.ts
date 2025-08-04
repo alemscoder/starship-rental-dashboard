@@ -8,6 +8,7 @@ interface ImportMetaEnv {
 	readonly JWT_EXPIRE_TIME: number | string
 	readonly UPSTASH_REDIS_REST_URL: string
 	readonly UPSTASH_REDIS_REST_TOKEN: string
+	readonly PUBLIC_APP_DEMO_MODE: string
 }
 
 interface ImportMeta {

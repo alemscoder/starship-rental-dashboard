@@ -1,4 +1,5 @@
 import { DEMO_USERS } from "@utils/demo-users.ts"
+import { rateLimit } from "@utils/rate-limit-by-cache.ts"
 import type { APIRoute } from "astro"
 
 const DEMO_MODE = import.meta.env.PUBLIC_APP_DEMO_MODE
@@ -8,6 +9,14 @@ const ALLOWED_DOMAINS = [
 ]
 
 export const GET: APIRoute = (context) => {
+	const ip = context.clientAddress || "127.0.0.1"
+	const { limited } = rateLimit(ip, { maxRequests: 100, windowMs: "10m" })
+	if (limited) {
+		return new Response(
+			JSON.stringify({ error: "Too many requests. Please try again later." }),
+			{ status: 429, headers: { "Content-Type": "application/json" } }
+		)
+	}
 	const demoMode = context.request.headers.get("x-demo-mode")
 	if (!demoMode || demoMode !== DEMO_MODE) {
 		return new Response(

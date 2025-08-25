@@ -137,9 +137,9 @@ export async function downloadFile(options: DownloadFileOptions) {
 	} catch (error: any) {
 		console.error(error)
 		if (error instanceof StorageError) {
-			Toast({ message: error.message, duration: -1 })
+			Toast({ message: error.message })
 		} else {
-			Toast({ message: error.message, duration: -1 })
+			Toast({ message: error.message })
 		}
 	}
 }

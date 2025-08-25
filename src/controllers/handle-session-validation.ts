@@ -32,15 +32,13 @@ export async function handleSessionValidation(routeContext: Context) {
 	}
 	if (currentSession.networkError) {
 		Toast({
-			message: `Network error connection: ${currentSession.networkError.message}`,
-			duration: -1
+			message: `Network error connection: ${currentSession.networkError.message}`
 		})
 		return true
 	}
 	if (currentSession.requestsError) {
 		Toast({
-			message: currentSession.requestsError.message,
-			duration: -1
+			message: currentSession.requestsError.message
 		})
 		return true
 	}
@@ -72,8 +70,7 @@ export async function handleSessionValidation(routeContext: Context) {
 		currentSession.sessionError?.message ||
 		"Access not allowed.\nCause: Auth session missing."
 	Toast({
-		message: errorMessage,
-		duration: -1
+		message: errorMessage
 	})
 	return true
 }

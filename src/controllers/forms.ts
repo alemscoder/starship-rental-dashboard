@@ -233,7 +233,6 @@ export class Forms<T> {
 			...oldValues, 
 			[fieldName]: fieldValue
 		})
-		console.log(this.recordsFormData.get())
 		if (this.#validationSchema) {
 			const clientValidationResponse = this.validateFormData(this.recordsFormData.get())
 			if (clientValidationResponse) {
@@ -359,7 +358,6 @@ export class Forms<T> {
 				this.formValidationErrors.set({ ...prevErrors, [fieldName]: messages })
 			}
 		}
-		console.log(this.formValidationErrors.get())
 		if (form) this.updateFieldsValidationState(form)
 	}
 
@@ -491,19 +489,19 @@ export class Forms<T> {
 				) {
 					this.handleFormValidationErrors(serverErrorResponse, form)
 				} else if (typeof serverErrorResponse === "string") {
-					Toast({ message: serverErrorResponse, duration: -1 })
+					Toast({ message: serverErrorResponse })
 				}
 				this.handleDisabledButton(false, actionButton, actionButtonText)
 			}
 			if (response.ok) {
 				const responseText = await response.text()
-				Toast({ message: responseText, duration: -1 })
+				Toast({ message: responseText })
 				onSuccess?.()
 			}
 		} catch (error) {
 			console.error("There was a problem with the fetch operation:", error)
 		}
-		console.log('Form data:', Object.fromEntries(formData.entries()))
+		//console.log('Form data:', Object.fromEntries(formData.entries()))
 	}
 
 	/**
@@ -558,16 +556,14 @@ export class Forms<T> {
 			})
 			const responseText = await response.text()
 			if (!response.ok) {
-				console.log(responseText)
-				Toast({ message: responseText, duration: -1 });
+				Toast({ message: responseText });
 				this.handleDisabledButton(false, deleteButton, "Delete")
 				return
 			}
 			if (response.ok) {
-				console.log(responseText)
 				onSuccess?.()
 				router.navigate(navigatePath)
-				Toast({ message: responseText, duration: -1 })
+				Toast({ message: responseText })
 			}
 		} catch (error) {
 			console.error("There was a problem with the fetch operation:", error)

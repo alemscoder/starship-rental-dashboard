@@ -38,15 +38,14 @@ export function handleRefreshSession() {
 					const { data, error } = await actions.session.refreshSession()
 					if (data) {
 						console.log(data)
-						Toast({ message: data.message, duration: -1 })
+						Toast({ message: data.message })
 					}
 					if (error) {
 						console.error(error)
 						console.log("Error refreshing session.", error.message)
 						await handleLogoutAndRedirect()
 						Toast({ 
-							message: `Error refreshing session. \n${error.message}`, 
-							duration: -1 
+							message: `Error refreshing session. \n${error.message}`
 						})
 					}
 				}, 0)

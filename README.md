@@ -43,6 +43,7 @@ This unique combination creates an interesting blend of modern web technologies 
 ## Table of Contents
 
 - [Features](#features)
+- [Demo Mode](#demo-mode)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
@@ -64,6 +65,40 @@ This unique combination creates an interesting blend of modern web technologies 
 - **Responsive UI:** Built with Vaadin Web Components for a seamless experience.
 - **Authentication:** Integrates with Supabase for secure user management.
 - **File Uploads:** Supports uploading and managing images/files for starships and locations.
+
+---
+
+## Demo Mode
+
+The Starship Rental Dashboard includes a **Demo Mode** that allows users to explore the app with pre-populated demo accounts—no registration or real data required.
+
+### How Demo Mode Works
+
+- **Demo Users:** A curated list of demo employees is available for instant sign-in.
+- **Restricted Actions:** Certain actions (like editing or deleting some data) are disabled to protect the demo environment.
+- **No Real Emails:** Demo sign-in does not send real authentication emails; access is instant.
+
+### Enabling Demo Mode
+
+1. **Set the environment variable:**
+   ```env
+   PUBLIC_APP_DEMO_MODE=true
+   ```
+2. **Restart your development server** for changes to take effect.
+
+If you want to **disable Demo Mode**, set the environment variable to `false` or remove it:
+```env
+PUBLIC_APP_DEMO_MODE=false
+```
+When Demo Mode is disabled, the demo sign-in option will not be rendered on the login screen and the related API endpoints will not be accessible.
+
+### Using Demo Mode
+
+- On the login screen, click **"Sign In as Demo User"**.
+- Select a demo user from the dropdown and click **"Demo Sign In"**.
+- You will be logged in as the selected demo employee and can explore the dashboard features.
+
+> **Note:** Demo Mode is intended for evaluation and testing only. No real data is created
 
 ---
 
@@ -144,9 +179,12 @@ JWT_EXPIRE_TIME=
 # Redis Configuration
 UPSTASH_REDIS_REST_URL=
 UPSTASH_REDIS_REST_TOKEN=
+
+# Demo Configuration
+PUBLIC_APP_DEMO_MODE=
 ```
 
-Required variables:
+Variables description:
 - `PUBLIC_SUPABASE_URL`: Your Supabase project URL
 - `PUBLIC_SUPABASE_ANON_KEY`: Your Supabase project's anonymous key
 - `SERVICE_ROLE`: Supabase service role key for admin operations
@@ -154,6 +192,7 @@ Required variables:
 - `JWT_EXPIRE_TIME`: JWT token expiration time (e.g., "24h", "7d")
 - `UPSTASH_REDIS_REST_URL`: Upstash Redis REST API URL
 - `UPSTASH_REDIS_REST_TOKEN`: Upstash Redis authentication token
+- `PUBLIC_APP_DEMO_MODE`: Set to `true` to enable demo mode, `false` to disable
 
 > **Note**: Never commit your `.env` file to version control. Make sure it's listed in your `.gitignore` file.
 

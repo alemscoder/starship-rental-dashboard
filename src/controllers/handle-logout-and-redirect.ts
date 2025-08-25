@@ -31,7 +31,7 @@ export async function handleLogoutAndRedirect() {
 		unsubscribeFromAll()
 		router.navigate("/login")
 	} catch (error: any) {
-		Toast({ message: `Network error connection: ${error.message}`, duration: -1 })
+		Toast({ message: `Network error connection: ${error.message}` })
 	}
 
 }

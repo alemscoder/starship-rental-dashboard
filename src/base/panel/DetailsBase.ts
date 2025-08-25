@@ -152,8 +152,7 @@ export abstract class DetailsBase<T extends { [key: string]: any }> {
 			if (item) return item
 		}
 		Toast({
-			message: `Item not found with reference: ${reference}`,
-			duration: -1
+			message: `Item not found with reference: ${reference}`
 		})
 		throw new Error(`Item not found with reference: ${reference}`)
 	}

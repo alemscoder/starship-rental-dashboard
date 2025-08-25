@@ -681,9 +681,8 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 			this.handleRecordDeleted
 		)
 		.subscribe((status, error) => {
-			//console.log('subscribe_status, ' + status)
-			//console.log(error)
 			if (error) {
+				console.error(error)
 				console.log("Subscription failed:", error.message)
 			} else if (status === "SUBSCRIBED") {
 				console.log(`Successful "${this.getRealtimeChannelName()}" SUBSCRIBED!`)
@@ -700,7 +699,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 			"system", 
 			{}, 
 			async (payload: any) => {
-				console.log("system", payload)
+				if (payload.status !== "ok") console.log("system", payload)
 				// Scenario: When the browser tab is in the background and a `system` payload is received,
 				// the access token may have expired. This happens because token refresh operations
 				// cannot occur while the tab is inactive, causing the channel to close (status `CLOSED`).
@@ -719,8 +718,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 					if (error) {
 						await handleLogoutAndRedirect()
 						Toast({ 
-							message: `Error refreshing session. \n${error.message}`, 
-							duration: -1 
+							message: `Error refreshing session. \n${error.message}`
 						})
 						return
 					}
@@ -944,7 +942,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	 */
 	protected render() {
 		if (this.#errorMsg) {
-			return Toast({ message: this.#errorMsg, duration: -1 })
+			return Toast({ message: this.#errorMsg })
 		} else {
 			observeAndRender({ 
 				template: this.template(),

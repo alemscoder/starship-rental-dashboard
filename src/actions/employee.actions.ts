@@ -166,7 +166,6 @@ export const employee = {
 					})
 				}
 				editedEmployee = employeeData.user
-				console.log(editedEmployee)
 				useAdminClient = false
 			} else {
 				throw new ActionError({ 

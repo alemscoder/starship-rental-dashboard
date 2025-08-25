@@ -27,7 +27,7 @@ export function updateIndeterminateCheckbox() {
 		const searchCheckbox = document.querySelector(".employees-view header vaadin-checkbox") as Checkbox
 		if (gridCheckbox && searchCheckbox) {
 			const listener = (event: CheckboxIndeterminateChangedEvent) => {
-				console.log(event)
+				//console.log(event)
 				searchCheckbox.indeterminate = event.detail.value
 			}
 			gridCheckbox.addEventListener("indeterminate-changed", listener)

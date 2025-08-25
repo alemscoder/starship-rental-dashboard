@@ -240,7 +240,6 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 					...oldValues, 
 					[inputFile.name]: file
 				})
-				console.log(this.formController.recordsFormData.get())
 				const imageUrl = URL.createObjectURL(file)
 				if (imageElement) {
 					currentConfig.setImage(imageElement, imageUrl)
@@ -315,7 +314,6 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 		}
 		target.setAttribute("hidden", "")
 		this.formController.enableActionButton()
-		console.log(this.formController.recordsFormData.get())
 	}
 
 	/**

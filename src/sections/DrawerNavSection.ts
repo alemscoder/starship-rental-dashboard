@@ -12,7 +12,9 @@ export async function DrawerNavSection() {
 		<div slot="drawer" class="drawer-nav">
 			${Logo()}
 			${Search()}
-			<vaadin-scroller class="flex-grow flex-shrink">
+			<vaadin-scroller 
+				scroll-direction="vertical" 
+				class="flex-grow flex-shrink">
 				${MainSideNav()}
 			</vaadin-scroller>
 			${Notifications()}

@@ -353,6 +353,11 @@ vaadin-icon.small {
 	box-shadow: 0 0 0 var(--_focus-ring-width) var(--_focus-ring-color)
 }
 
+vaadin-date-time-picker > vaadin-date-picker,
+vaadin-date-time-picker > vaadin-time-picker {
+	padding: var(--lumo-space-xs) 0;
+}
+
 h1 {
 	font-weight: 900
 }
@@ -478,4 +483,24 @@ vaadin-progress-bar[theme~=accent]::part(value) {
 #registerPanel form,
 #forgotPasswordPanel form {
 	--lumo-required-field-indicator: none;
+}
+
+.loading:before {
+	content: "";
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	translate: -50% -50%;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	border: 2px solid var(--lumo-contrast-70pct);
+	-webkit-mask-image: radial-gradient(circle at 0% 0%,transparent 25%,black 50%);
+	mask-image: radial-gradient(circle at 0% 0%,transparent 25%,black 50%);
+	animation: spin .5s linear infinite
+}
+@keyframes spin {
+	to {
+		rotate: 360deg
+	}
 }

@@ -53,3 +53,71 @@ vaadin-app-layout[overlay][drawer-opened]::part(backdrop) {
 		transform: none
 	}
 }
+vaadin-app-layout.dashboard {
+	--vaadin-app-layout-drawer-width: 15em;
+}
+vaadin-app-layout.dashboard > .drawer-nav {
+	flex: auto;
+	padding: var(--lumo-space-m);
+	align-items: start;
+}
+vaadin-app-layout.dashboard > .drawer-nav > a {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: space-around;
+	text-decoration: none;
+}
+vaadin-app-layout.dashboard > .drawer-nav > a > h1 {
+	background: radial-gradient(at 20% 0%, var(--lumo-contrast-50pct), var(--lumo-header-text-color) 60%);
+	background-clip: text;
+	color: transparent;
+	font-weight: 850;
+	font-size: var(--lumo-font-size-xxl);
+	letter-spacing: -.05em;
+	line-height: normal;
+}
+[theme~=dark] vaadin-app-layout.dashboard > .drawer-nav > a > h1 {
+	background-image: radial-gradient(circle at 100% 100%, var(--lumo-contrast-70pct), var(--lumo-header-text-color) 90%);
+}
+vaadin-app-layout.dashboard > .drawer-nav > vaadin-scroller {
+	width: 100%;
+}
+vaadin-app-layout.dashboard vaadin-side-nav.stacked vaadin-side-nav-item::part(content) {
+	aspect-ratio: auto;
+}
+vaadin-app-layout.dashboard vaadin-side-nav.stacked vaadin-side-nav-item::part(link) {
+	padding: 0 var(--lumo-space-s);
+	flex-direction: row;
+	font-size: var(--lumo-font-size-m);
+}
+vaadin-app-layout.dashboard vaadin-button::part(prefix),
+vaadin-app-layout.dashboard vaadin-button::part(suffix) {
+	margin: 0;
+}
+vaadin-app-layout.dashboard vaadin-button::part(prefix) {
+	flex-shrink: 0;
+	text-align: start;
+}
+vaadin-app-layout.dashboard vaadin-button.notifications::part(label),
+vaadin-app-layout.dashboard vaadin-button#searchButton::part(label) {
+	color: var(--lumo-contrast-80pct);
+	padding: 0 var(--lumo-space-s);
+	flex: auto;
+	transition: opacity .2s;
+	text-align: start;
+}
+vaadin-app-layout.dashboard vaadin-button.notifications {
+	padding: 0 var(--lumo-space-s);
+}
+vaadin-app-layout.dashboard vaadin-menu-bar.user-menu {
+	width: 100%;
+}
+vaadin-app-layout.dashboard vaadin-menu-bar.user-menu vaadin-menu-bar-button[theme="tertiary-inline"] {
+	width: inherit;
+}
+vaadin-app-layout.dashboard > .View-container {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}

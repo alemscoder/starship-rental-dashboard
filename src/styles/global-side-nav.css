@@ -30,8 +30,6 @@ vaadin-side-nav-item::part(children) {
 	gap: 1px;
 	overflow: hidden;
 	transition: visibility var(--transition-duration),opacity var(--transition-duration);
-	padding: 2px;
-	margin: -2px
 }
 vaadin-side-nav[collapsed]::part(children),
 vaadin-side-nav-item:not([expanded])::part(children) {

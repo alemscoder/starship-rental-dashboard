@@ -10,10 +10,6 @@
 	background: var(--lumo-shade-5pct);
 	box-shadow: inset -1px 0 0 0 var(--lumo-contrast-5pct);
 }
-.drawer-nav vaadin-scroller {
-	margin: -2px;
-	padding: 2px
-}
 .drawer-nav :is(.user-menu) vaadin-menu-bar-button {
 	width: var(--lumo-size-m);
 	height: var(--lumo-size-m);

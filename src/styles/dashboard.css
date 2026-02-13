@@ -1,0 +1,67 @@
+vaadin-radio-group::part(label) {
+	display: none;
+}
+vaadin-radio-group[has-label][theme~="toggle"]::before {
+	height: var(--lumo-size-m);
+}
+vaadin-radio-group[theme~="toggle"]::part(group-field) {
+	flex-wrap: nowrap;
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button {
+	background-color: transparent;
+	outline: 1px solid var(--lumo-contrast-30pct);
+	outline-offset: -1px;
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button:first-of-type {
+	border-radius: var(--lumo-border-radius-m) 0 0 var(--lumo-border-radius-m);
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button:last-of-type {
+	border-radius: 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0;
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button:not(:first-of-type) {
+	margin: 0 0 0 -1px;
+}
+vaadin-radio-group[theme~="toggle"][theme~='vertical'] vaadin-radio-button:first-of-type {
+	border-radius: var(--lumo-border-radius-m) var(--lumo-border-radius-m) 0 0;
+}
+vaadin-radio-group[theme~="toggle"][theme~='vertical'] vaadin-radio-button:last-of-type {
+	border-radius: 0 0 var(--lumo-border-radius-m) var(--lumo-border-radius-m);
+}
+vaadin-radio-group[theme~="toggle"][theme~='vertical'] vaadin-radio-button:not(:first-of-type) {
+	margin: -1px 0 0 0;
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button::part(radio) {
+	display: none;
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button label {
+	align-items: center;
+	box-sizing: border-box;
+	display: flex;
+	min-height: var(--lumo-size-m);
+	padding-inline-start: var(--lumo-space-m);
+	padding-inline-end: var(--lumo-space-m);
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button:not([checked]):not([disabled]):hover {
+	background-color: var(--lumo-contrast-10pct);
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button[checked] {
+	--_focus-ring-gap-on: 1;
+	background-color: var(--lumo-primary-color-10pct);
+	color: var(--lumo-primary-color);
+	outline: 2px solid var(--lumo-primary-color);
+	outline-offset: -2px;
+	z-index: 1;
+}
+vaadin-radio-group[theme~="toggle"] vaadin-radio-button[focus-ring] {
+	box-shadow: 0 0 0 calc(1px * var(--_focus-ring-gap-on, 0)) var(--_focus-ring-gap-color, var(--lumo-base-color)),
+							0 0 0 calc(var(--vaadin-focus-ring-width, 2px) + 1px * var(--_focus-ring-gap-on, 0)) var(--vaadin-focus-ring-color, var(--lumo-primary-color-50pct));
+	z-index: 1;
+}
+@media (min-width: 768px) {
+	.md\:divide-x > * + * {
+		border-inline-start: 1px var(--lumo-utility-border-style, solid) var(--lumo-utility-border-color, var(--lumo-contrast-10pct));
+	}
+	.md\:divide-y > * + * {
+		border-block-start: 1px var(--lumo-utility-border-style, solid) var(--lumo-utility-border-color, var(--lumo-contrast-10pct));
+	}
+}

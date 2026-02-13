@@ -1,7 +1,7 @@
 import { html, nothing } from "lit-html"
 import { SideNavBase } from "@base/side-nav/SideNavBase.ts"
 import { ticketsStore, customersStore, locationsStore } from "@store/gridData.store.ts"
-import type { Tickets, Customers, Locations } from "../../types.ts"
+import type { Ticket, Customer, Location } from "../../types.ts"
 
 export class RentalsSideNav extends SideNavBase {
 
@@ -24,7 +24,7 @@ export class RentalsSideNav extends SideNavBase {
 	}
 
 	protected initialize() {
-		this.initializeCounter<Tickets | Customers | Locations>([
+		this.initializeCounter<Ticket | Customer | Location>([
 			{
 				recordsStoreName: "ticketsStore",
 				recordsStore: ticketsStore

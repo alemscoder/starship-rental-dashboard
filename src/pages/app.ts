@@ -1,4 +1,6 @@
-import { html, render } from "lit-html"
+import { html, nothing, render } from "lit-html"
+import { Dashboard } from "@components/Dashboard.ts"
+import { HeaderSection } from "@sections/HeaderSection.ts"
 import { DrawerNavSection } from "@sections/DrawerNavSection.ts"
 import { DrawerMenuSection } from "@sections/DrawerMenuSection.ts"
 import { handleRefreshSession } from "@controllers/handle-refresh-session.ts"
@@ -7,31 +9,40 @@ import "@styles/app-layout.css"
 import "@styles/global-side-nav.css"
 
 /**
- * Represents the initialization of the application layout.
- * The `InitApp` class is responsible for setting up the primary application layout,
- * including the navigation section and menu section and the refresh session handler. 
- * It follows the singleton pattern to ensure that only one instance of the class 
- * exists during the application runtime.
+ * Handles the initialization and rendering of the main application layout.
+ *
+ * The `InitApp` class sets up the root layout structure of the web application,
+ * including the navigation sidebar, the drawer menu, and session refresh logic.
+ *
+ * It follows the **singleton pattern** to ensure that only a single instance
+ * exists throughout the application's lifetime. The instance is responsible for
+ * rendering the layout into the `#outlet` container and determining when the
+ * dashboard must be shown (i.e., when the current route is the root "/").
  */
 export class InitApp {
 
 	/** A private static property to hold the 
 	 * singleton instance of `InitApp` 
+	 * 
 	 * @private
+	 * @static
 	*/
 	static #instance: InitApp
 
 	/**
 	 * The container element where the app's content will be rendered.
+	 * 
+	 * @protected
 	 */
-	container: HTMLElement | DocumentFragment
+	protected container: HTMLElement | DocumentFragment
 
 	/**
-	 * Constructs an instance of `InitApp` and initializes 
-	 * the application layout rendering.
-	 * This constructor ensures that only one instance of `InitApp` 
-	 * exists (singleton pattern).
-	 * If an instance already exists, it returns the existing instance.
+	 * Creates a new instance of `InitApp` and immediately renders the layout.
+	 *
+	 * If an instance already exists, the constructor returns that same instance
+	 * (enforcing the singleton pattern). Otherwise, it initializes the session
+	 * refresh handler and stores the newly created instance.
+	 * 
 	 * @constructor
 	 * @throws Throws an error if the container element is not found.
 	 */
@@ -53,54 +64,92 @@ export class InitApp {
 		InitApp.#instance = this
 	}
 
-	/** Initializes the session refresh handler. */
-	initializeRefreshSession() {
+	/** Initializes the session refresh handler responsible for maintaining
+	 * the user's authentication state in the background.
+	 * 
+	 * @protected
+	 */
+	protected initializeRefreshSession() {
 		handleRefreshSession()
 	}
 
 	/**
-	 * Asynchronously retrieves the navigation section template.
-	 * This method fetches the `DrawerNavSection` component which 
-	 * is used to build the navigation section of the application.
+	 * Retrieves the navigation section template.
 	 * 
+	 * This asynchronous method loads the `DrawerNavSection`, which represents
+	 * the application’s main navigation sidebar.
+	 * 
+	 * @protected
 	 * @async
 	 * @returns A lit-html template for the navigation section.
 	 */
-	async getNavSectionTemplate() {
+	protected async getNavSectionTemplate() {
 		return DrawerNavSection()
 	}
 
 	/**
-	 * Builds and returns the lit-html template 
-	 * for the application layout.
-	 * This template includes a navigation section, 
-	 * a drawer menu, and a view container.
+	 * Determines whether the current browser route corresponds to the root path (`"/"`).
 	 * 
-	 * @param navSection - The navigation section template.
-	 * @returns A lit-html template representing the application layout.
+	 * @protected
+	 * @returns Returns `true` if `location.pathname` equals `"/"`,
+	 * otherwise returns `false`.
 	 */
-	template(navSection: TemplateResult) {
+	protected isRootPathname() {
+		return location.pathname === "/"
+	}
+
+	
+	/**
+	 * Builds the layout template of the application.
+	 *
+	 * The template includes:
+	 * - The navigation section (`DrawerNavSection`)
+	 * - The drawer menu (`DrawerMenuSection`) unless the user is on the root path
+	 * - A `HeaderSection` containing a "Dashboard" title when rendering the root path
+	 *
+	 * @protected
+	 * @param navSection - The navigation section template to render.
+	 * @returns The resulting lit-html template for the layout.
+	 *
+	 * @remarks
+	 * When on the root path:
+	 * - Adds the `"dashboard"` CSS class to `<vaadin-app-layout>`
+	 * - Renders the dashboard header instead of the drawer menu
+	 */
+	protected template(navSection: TemplateResult) {
+		const isRootPathname = this.isRootPathname()
 		return html`
-			<vaadin-app-layout>
+			<vaadin-app-layout class=${isRootPathname ? "dashboard" : ""}>
 				${navSection}
-				${DrawerMenuSection()}
-				<div class="View-container"></div>
+				${isRootPathname ? nothing : DrawerMenuSection()}
+				<div class="View-container">
+					${ isRootPathname ? HeaderSection({templateContent: html`<h1>Dashboard</h1>`}) : nothing }
+				</div>
 			</vaadin-app-layout>
 		`
 	}
 
+	
 	/**
-	 * Renders the application layout into the container.
-	 * This method retrieves the navigation 
-	 * section asynchronously and renders the
-	 * complete layout into the specified container 
-	 * using the `lit-html` render function.
-	 * 
+	 * Renders the main application layout into the container.
+	 *
+	 * This method:
+	 * 1. Checks if the current pathname is the root route.
+	 * 2. Loads the navigation section template.
+	 * 3. Renders the full application layout using lit-html.
+	 * 4. If the user is at the root path, triggers the dashboard rendering.
+	 *
+	 * @protected
 	 * @async
+	 * @returns Resolves when the rendering is complete.
 	 */
-	async render() {
+	protected async render() {
+		const isRootPathname = this.isRootPathname()
 		const navSection = await this.getNavSectionTemplate()
 		render(this.template(navSection), this.container)
+		if (isRootPathname) {
+			Dashboard.getInstance().render()
+		}
 	}
 
 }

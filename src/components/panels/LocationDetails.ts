@@ -8,9 +8,9 @@ import { HeaderSection } from "@sections/HeaderSection.ts"
 import { RentalsSideNav } from "@pages/rentals/RentalsSideNav.ts"
 import { LocationsGrid } from "@components/grids/LocationsGrid.ts"
 import { planetAvatarStore, locationLandscapeStore } from "@store/fileUrl.store.ts"
-import type { Locations } from "../../types.ts"
+import type { Location } from "../../types.ts"
 
-export class LocationDetails extends DetailsBase<Locations> {
+export class LocationDetails extends DetailsBase<Location> {
 
 	static #instance: LocationDetails
 
@@ -33,6 +33,7 @@ export class LocationDetails extends DetailsBase<Locations> {
 	protected async initialize() {
 		await LocationsGrid.getInstance().waitForInitialization()
 		this.data = this.getDataByReference()
+		LocationsGrid.getInstance().setGridActiveItem(this.data)
 		this.render()
 	}
 
@@ -40,7 +41,7 @@ export class LocationDetails extends DetailsBase<Locations> {
 		return locationsStore 
 	}
 	
-	public updateDetails(locationDetails: Locations) {
+	public updateDetails(locationDetails: Location) {
 		this.data = locationDetails
 		this.render()
 	}

@@ -35,13 +35,13 @@ export function UserRegister() {
 			event.preventDefault()
 			const form = event.currentTarget as HTMLFormElement
 			const submitButton = formController.getActionButton("#registerPanel #userRegisterButton")
-			formController.handleDisabledButton(true, submitButton)
+			formController.handleButtonState(true, submitButton)
 			const formData = new FormData(form)
 			const formEntries = Object.fromEntries(formData.entries()) as NewUser
 			const clientValidationResponse = formController.validateFormData(formEntries)
 			if (clientValidationResponse) {
 				formController.handleFormValidationErrors(clientValidationResponse, form)
-				formController.handleDisabledButton(false, submitButton, "Register")
+				formController.handleButtonState(false, submitButton, "Register")
 				return
 			}
 			try {
@@ -52,21 +52,21 @@ export function UserRegister() {
 						errors: error.fields 
 					} as ValidationErrorResponse
 					formController.handleFormValidationErrors(serverErrorResponse, form)
-					formController.handleDisabledButton(false, submitButton, "Register")
+					formController.handleButtonState(false, submitButton, "Register")
 				}
 				if (error?.code === "UNAUTHORIZED" || error?.code === "TIMEOUT") {
-					formController.handleDisabledButton(false, submitButton, "Register")
+					formController.handleButtonState(false, submitButton, "Register")
 					Toast({ message: error.message })
 				}
 				if (data) {
 					form.reset()
-					formController.handleDisabledButton(false, submitButton, "Register")
+					formController.handleButtonState(false, submitButton, "Register")
 					formController.resetStoreStates()
 					render()
 					Toast({ message: data.message })
 				}
 			} catch (error: any) {
-				formController.handleDisabledButton(false, submitButton, "Register")
+				formController.handleButtonState(false, submitButton, "Register")
 				Toast({ message: `Error connection: ${error.message}` })
 			}
 		}
@@ -123,13 +123,13 @@ export function UserRegister() {
 			</vaadin-password-field>
 			<vaadin-button
 				@click=${formController.handleActionButtonClick}
-				?disabled=${formController.disabledButton.get()}
+				?disabled=${formController.actionButtonDisabled.get()}
 				id="userRegisterButton"
 				theme="primary">
 				Register
 			</vaadin-button>
 			<input
-				?disabled=${formController.disabledButton.get()}
+				?disabled=${formController.actionButtonDisabled.get()}
 				type="submit" 
 				hidden 
 			/>

@@ -3,12 +3,12 @@ import router from "@router/router.ts"
 import { Toast } from "@components/Toast.ts"
 import { actions, isInputError } from "astro:actions"
 import { selectRenderer } from "@vaadin/select/lit.js"
-import type { Employees } from "../types.ts"
+import type { Employee } from "../types.ts"
 import type { Button } from "@vaadin/button"
 
 export function DemoSignIn() {
 
-	let employeeList: Employees[] | null = null
+	let employeeList: Employee[] | null = null
 
 	const backToSignInForm = () => {
 		const signInPanel = document.querySelector<HTMLDivElement>("#signInPanel")
@@ -25,7 +25,7 @@ export function DemoSignIn() {
 		const email = select?.value!
 		if (!select?.value) return
 		target.disabled = true
-		loginContainer?.classList.add("logging-in")
+		loginContainer?.classList.add("loading")
 		try {
 			const { data, error } = await actions.auth.loginWithLink({ email })
 			if (isInputError(error)) {
@@ -34,12 +34,12 @@ export function DemoSignIn() {
 					select.errorMessage = error.fields.email[0]
 				}
 				target.disabled = false
-				loginContainer?.classList.remove("logging-in")
+				loginContainer?.classList.remove("loading")
 			}
 			if (error?.type === "AstroActionError") {
 				Toast({ message: error.message })
 				target.disabled = false
-				loginContainer?.classList.remove("logging-in")
+				loginContainer?.classList.remove("loading")
 			}
 			if (data) {
 				await router.navigate("/rentals/tickets")
@@ -53,7 +53,7 @@ export function DemoSignIn() {
 		} catch (error: any) {
 			Toast({ message: `Network error connection: ${error.message}` })
 			target.disabled = false
-			loginContainer?.classList.remove("logging-in")
+			loginContainer?.classList.remove("loading")
 		}
 	}
 
@@ -96,7 +96,7 @@ export function DemoSignIn() {
 			}
 			return response.json()
 		})
-		.then((data: Employees[]) => {
+		.then((data: Employee[]) => {
 			employeeList = data
 		})
 		.catch(error => {

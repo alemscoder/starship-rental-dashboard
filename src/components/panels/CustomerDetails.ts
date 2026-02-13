@@ -4,9 +4,9 @@ import { DetailsBase } from "@base/panel/DetailsBase.ts"
 import { customersStore } from "@store/gridData.store.ts"
 import { HeaderSection } from "@sections/HeaderSection.ts"
 import { CustomersGrid } from "@components/grids/CustomersGrid.ts"
-import type { Customers } from "../../types.ts"
+import type { Customer } from "../../types.ts"
 
-export class CustomerDetails extends DetailsBase<Customers> {
+export class CustomerDetails extends DetailsBase<Customer> {
 
 	static #instance: CustomerDetails
 
@@ -29,6 +29,7 @@ export class CustomerDetails extends DetailsBase<Customers> {
 	protected async initialize() {
 		await CustomersGrid.getInstance().waitForInitialization()
 		this.data = this.getDataByReference()
+		CustomersGrid.getInstance().setGridActiveItem(this.data)
 		this.render()
 	}
 
@@ -36,7 +37,7 @@ export class CustomerDetails extends DetailsBase<Customers> {
 		return customersStore 
 	}
 
-	public updateDetails(customerDetails: Customers) {
+	public updateDetails(customerDetails: Customer) {
 		this.data = customerDetails
 		this.render()
 	}

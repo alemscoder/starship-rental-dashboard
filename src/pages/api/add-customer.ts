@@ -2,7 +2,6 @@ import { serverClient } from "@lib/server.ts"
 import { formatZodErrors } from "@utils/zod.ts"
 import { AuthError } from "@supabase/supabase-js"
 import { PostgrestError } from "@utils/errors.ts"
-import { StorageError } from "@supabase/storage-js"
 import { customerSchema } from "@schema/customer.schema.ts"
 import type { APIRoute } from "astro"
 
@@ -57,10 +56,8 @@ export const POST: APIRoute = async (context) => {
 				.from("customers")
 				.insert(newData)
 			if (customerResult.error) {
-				throw new PostgrestError({
-					message: customerResult.error.message,
-					status: customerResult.status ?? 404
-				})
+				console.log(customerResult.error)
+				throw new PostgrestError(customerResult.error)
 			}
 		} else {
 			throw new AuthError("You are not authorized to add a new customer.", 403)
@@ -76,12 +73,9 @@ export const POST: APIRoute = async (context) => {
 				{ status: 400 }
 			)
 		}
-		if (error instanceof StorageError) {
-			return new Response(error.message, { status: 404 })
-		}
 		if (error instanceof PostgrestError) {
 			return new Response(
-				`Error updating database:\n${error.message || "Database name not found."}`, 
+				`Error inserting into database:\n${error.message || "Database name not found."}`, 
 				{ status: error.status }
 			)
 		}

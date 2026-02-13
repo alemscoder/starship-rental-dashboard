@@ -18,18 +18,25 @@ let isBucketVerified: { [bucketName: string]: boolean } = {}
  * @returns A promise that resolves to an object containing the fetched data or an error message.
  * @example
  * // Fetch all data from the "tickets" table
- * const { tableData, errorMsg } = await fetchData<Tickets>({ 
+ * const { tableData, errorMsg } = await fetchData<Ticket>({ 
  *  tableName: "tickets" 
  * })
  * @example
  * // Fetch only "name" and "age" columns from the "customers" table
- * const { tableData, errorMsg } = await fetchData<Customers>({
+ * const { tableData, errorMsg } = await fetchData<Customer>({
  *  tableName: "customers", query: "name, age"
  * })
  * @example
  * // Fetch data from the "orders" table where the "status" column is "completed"
  * const { tableData, errorMsg } = await fetchData<Orders>({
  *  tableName: "orders", eq: { column: "status", value: "completed" }
+ * });
+ * @example
+ * // Fetch data from the "employees" table ordered by "hire_date" in descending order
+ * const { tableData, errorMsg } = await fetchData<Employees>({
+ *   tableName: "employees",
+ *   query: "*",
+ *   order: { column: "hire_date", options: { ascending: false } }
  * });
  * @example
  * // Fetch data from the "products" table where either "category" is "electronics" or "price" is less than 100.
@@ -41,7 +48,7 @@ let isBucketVerified: { [bucketName: string]: boolean } = {}
  * });
  */
 export async function fetchData<T>(options: FetchDataOptions) {
-	const { tableName, query = "*", eq, or } = options
+	const { tableName, query = "*", order, eq, or } = options
 	/** The returned error message */
 	let errorMsg: string | null = null
 	/** The returned table data */
@@ -49,18 +56,21 @@ export async function fetchData<T>(options: FetchDataOptions) {
 	try {
 		// Initial build of the query
 		let queryBuilder = supabase.from(tableName).select(query)
+		// Add modifiers if defined
+		if (order) {
+			queryBuilder = queryBuilder.order(order.column, order.options)
+		}
 		// Add conditional filter if defined
 		if (eq) {
 			queryBuilder = queryBuilder.eq(eq.column, eq.value)
 		}
 		if (or) {
-			const { filters, options } = or
-			queryBuilder = queryBuilder.or(filters, options)
+			queryBuilder = queryBuilder.or(or.filters, or.options)
 		}
 		// Execute the query with the returned data type
 		const { data, error } = await queryBuilder.returns<T[]>()
 		if (error) {
-			throw new PostgrestError({message: error.message})
+			throw new PostgrestError(error)
 		} else {
 			tableData = data
 		}
@@ -69,7 +79,7 @@ export async function fetchData<T>(options: FetchDataOptions) {
 		if (error instanceof PostgrestError) {
 			errorMsg = `There was an error fetching the ${tableName} data.\n${error.message}`
 		} else {
-			errorMsg = `An unexpected error occurred.\n${error.message}`
+			errorMsg = `Unexpected error fetching ${tableName} data.\n${error.message}`
 		}
 	}
 	return { tableData, errorMsg }

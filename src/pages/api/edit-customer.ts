@@ -57,10 +57,7 @@ export const POST: APIRoute = async (context) => {
 				.update(updateData)
 				.eq("id", formEntries.id)
 			if (customerResult.error) {
-				throw new PostgrestError({
-					message: customerResult.error.message,
-					status: customerResult.status ?? 404
-				})
+				throw new PostgrestError(customerResult.error)
 			}
 		} else {
 			throw new AuthError("You are not authorized to edit this customer.", 403)

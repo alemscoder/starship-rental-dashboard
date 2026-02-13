@@ -1,9 +1,9 @@
 import { html } from "lit-html"
 import { customerSchema } from "@schema/customer.schema.ts"
 import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
-import type { Customers } from "../../types.ts"
+import type { Customer } from "../../types.ts"
 
-export class NewCustomerDialog extends ActionDialogBase<Customers> {
+export class NewCustomerDialog extends ActionDialogBase<Customer> {
 
 	constructor() {
 		super("#rentalsMenuBar")
@@ -23,20 +23,20 @@ export class NewCustomerDialog extends ActionDialogBase<Customers> {
 		return "vaadin-dialog-overlay.new.customer #submitNewCustomer"
 	}
 
-	protected getFormFieldNames(): (keyof Customers)[] {
+	protected getFormFieldNames(): (keyof Customer)[] {
 		return [
 			"first_name", "last_name", "nationality", "language", "date_of_birth", 
 			"age", "driver_license", "email", "phone", "address"
 		]
 	}
 	
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const submitButton = this.formController.getActionButton(
 			this.getActionButtonSelector(),
 		)
-		this.formController.handleDisabledButton(true, submitButton)
+		this.formController.handleButtonState(true, submitButton)
 		const formData = new FormData()
 		const customerData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -75,7 +75,7 @@ export class NewCustomerDialog extends ActionDialogBase<Customers> {
 	`
 
 	protected renderDialog = () => html`
-		<vaadin-vertical-layout theme="spacing">
+		<vaadin-vertical-layout theme="padding" class="pt-0 items-stretch">
 			<form 
 				@submit=${this.handleSubmitRecord} 
 				class="mt-m flex flex-col gap-s">

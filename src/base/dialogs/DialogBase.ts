@@ -144,6 +144,7 @@ export abstract class DialogBase {
 	 * @protected
 	 */
 	protected render() {
+		console.log("RENDER DialogBase Class EXECUTED")
 		render(this.template(), this.container, { host: this })
 	}
 

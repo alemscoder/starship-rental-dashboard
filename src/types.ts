@@ -19,6 +19,18 @@ type AnyStringWithAutocompleteOptions<
 type StringWithAutocompleteOptions<TOptions extends string> = TOptions
 
 /**
+ * Represents a generic server response indicating a successful operation.
+ *
+ * @template T - The type of the data returned in the response.
+ * @property message - An optional message describing the response.
+ * @property [key: string] - Additional properties containing response data or messages.
+ */
+export type ServerSuccessResponse<T = unknown> = {
+	message?: string
+	[key: string]: T | string | undefined
+}
+
+/**
  * The type `ValidationErrorResponse` represents an error response for input validation errors with
  * specific error messages for each input field.
  * @property errorType - The `errorType` property in the `ValidationErrorResponse` type specifies the
@@ -92,6 +104,36 @@ export interface FetchDataOptions {
 	 * Defaults to `"*"` to fetch all columns.
 	 */
 	query?: string
+	/**
+	 * Order the query result by column.
+	 */
+	order?: {
+		/**
+		 * The column to order by
+		 */
+		column: string,
+		/**
+		 * Named parameters
+		 */
+		options?: {
+			/**
+			 * If `true`, the result will be in ascending order
+			 */
+			ascending?: boolean
+			/**
+			 * If `true`, `null`s appear first. If `false`, `null`s appear last
+			 */
+			nullsFirst?: boolean
+			/**
+			 * Deprecated, use `options.referencedTable` instead
+			 */
+			foreignTable?: string
+			/**
+			 * Set this to order a referenced table by its columns
+			 */
+			referencedTable?: string
+		}
+	}
 	/**
 	 * Match only rows where a specific column is equal to a given value.
 	 */
@@ -541,6 +583,14 @@ export interface ActionButtonsTemplateConfig {
 	 * The ID of the submit button.
 	 */
 	submitButtonId: string
+	/**
+	 * Additional css class for styling the submit button.
+	 */
+	submitButtonClassName?: string
+	/**
+	 * Additional css class for styling the edit container.
+	 */
+	editContainerClassName?: string
 }
 /**
  * Configuration for rendering avatar image UI elements.
@@ -667,27 +717,27 @@ export interface ApiEndpointConfig {
 }
 
 // ================================================
-//    Tickets Types
+//    Ticket Type
 // ================================================
-export type Tickets = {
+export type Ticket = {
 	id: 							string
 	created_at: 			string
 	reference: 				number
 	pickup_date: 			string
 	return_date: 			string
-	pickup_location:	Locations
-	return_location:	Locations
+	pickup_location:	Location
+	return_location:	Location
 	status: 					string
 	total_cost: 			string
-	rent_duration:		number
-	customers:				Customers
-	starships:				Starships
+	rent_duration:		string
+	customer:					Customer
+	starship:					Starship
 }
 
 // ================================================
-//    Customers Types
+//    Customer Type
 // ================================================
-export type Customers = {
+export type Customer = {
 	id: 						string
 	created_at: 		string
 	reference: 			number
@@ -704,9 +754,9 @@ export type Customers = {
 }
 
 // ================================================
-//    Location Types
+//    Location Type
 // ================================================
-export type Locations = {
+export type Location = {
 	id: 								string
 	created_at: 				string
 	reference: 					number
@@ -721,9 +771,9 @@ export type Locations = {
 }
 
 // ================================================
-//    Starships Types
+//    Starship Type
 // ================================================
-export type Starships = {
+export type Starship = {
 	id: 						string
 	created_at: 		string
 	reference: 			number
@@ -739,9 +789,9 @@ export type Starships = {
 }
 
 // ================================================
-//    Messages Types
+//    Message Type
 // ================================================
-export type Messages = {
+export type Message = {
 	id: 								string
 	created_at: 				string
 	reference:					number
@@ -749,15 +799,15 @@ export type Messages = {
 	sender_reference:		number
 	receiver_unread:		boolean
 	sender_unread:			boolean
-	sender:							Employees
-	receiver:						Employees
+	sender:							Employee
+	receiver:						Employee
 	conversations:			MessageListItem[]
 }
 
 // ================================================
-//    Employees Types
+//    Employee Type
 // ================================================
-export type Employees = {
+export type Employee = {
 	id:									string
 	created_at:					string
 	last_sign_in_at:		string

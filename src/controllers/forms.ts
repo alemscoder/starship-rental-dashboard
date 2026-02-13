@@ -5,7 +5,7 @@ import { Toast } from "@components/Toast.ts"
 import { formatZodErrors } from "@utils/zod.ts"
 import type { Button } from "@vaadin/button"
 import type { TextField } from "@vaadin/text-field"
-import type { ValidationErrorResponse, ApiEndpointConfig } from "../types.ts"
+import type { ServerSuccessResponse, ValidationErrorResponse, ApiEndpointConfig } from "../types.ts"
 
 /**
  * A versatile form management controller for handling form state,
@@ -68,10 +68,10 @@ export class Forms<T> {
 	public formValidationErrors = map<Record<string, string>>({})
 
 	/** 
-	 * Nano store for managing the disabled state of buttons.
+	 * Nano store for managing the disabled state of action buttons in forms.
 	 * @public 
 	 */
-	public disabledButton = atom(true)
+	public actionButtonDisabled = atom(true)
 
 	/**
 	 * A mapping between form field names and their respective error message container selectors.
@@ -88,6 +88,16 @@ export class Forms<T> {
 	 * @public
 	 */
 	public errorValidationContainers: Record<string, string> = {}
+
+	/**
+	 * Tracks fields with client-side validation errors not covered by the Zod schema.
+	 * 
+	 * This set contains the names of form fields that fail custom or local validation
+	 * checks, or fields excluded from the main validation schema.
+	 * 
+	 * @public
+	 */
+	public localValidationErrors = new Set<string>()
 
 	/**
 	 * Constructor that accepts an optional callback 
@@ -146,13 +156,13 @@ export class Forms<T> {
 	 * Enables the action button in the form.
 	 * 
 	 * If the action button is currently disabled, it sets 
-	 * the `disabledButton` nano store to `false` and execute
+	 * the `actionButtonDisabled` nano store to `false` and execute
 	 * the callback render function if provided.
 	 * @public
 	 */
 	public enableActionButton() {
-		if (this.disabledButton.get()) {
-			this.disabledButton.set(false)
+		if (this.actionButtonDisabled.get()) {
+			this.actionButtonDisabled.set(false)
 			if (this.#renderCallback) {
 				this.#renderCallback()
 			}
@@ -160,39 +170,43 @@ export class Forms<T> {
 	}
 
 	/**
-	 * Manages the disabled state and loading indication for action buttons.
+	 * Handles the loading state of a button by toggling its disabled state 
+	 * and showing/hiding a spinner icon.
+	 * When the state is true (loading), the button becomes disabled, its 
+	 * text is cleared, and a spinner icon is added. When the state is false 
+	 * (not loading), the button is re-enabled, the spinner is removed,
+	 * and the original text is restored if provided.
 	 * 
-	 * This method provides comprehensive button state management:
-	 * - Toggles button disabled state.
-	 * - Adds/removes loading spinner icon.
-	 * - Restores button text when enabled.
-	 * - Triggers optional render callback.
-	 * 
-	 * Key behaviors:
-	 * - When disabled, replaces button text with a spinner.
-	 * - When enabled, restores original button text.
-	 * - Updates the `disabledButton` nano store.
 	 * @public
-	 * @param state - Boolean indicating whether to disable (true) or enable (false) the button.
-	 * @param buttonTarget - The Vaadin button element to modify.
-	 * @param buttonInnerText - Optional original text to restore when button is enabled.
+	 * @param state - The loading state. True to show loading (disable button + show spinner), 
+	 * false to hide loading (enable button + hide spinner)
+	 * @param buttonTarget - The button element to modify. If null, the method returns early
+	 * @param buttonInnerText - Optional text to restore to the button when loading state is false.
+	 * If not provided, the button text remains empty after loading
+	 * @example
+	 * // Show loading state
+	 * this.handleButtonState(true, submitButton);
+	 * 
+	 * // Hide loading state and restore button text
+	 * this.handleButtonState(false, submitButton, "Submit Form");
 	 */
-	public handleDisabledButton(state: boolean, buttonTarget: Button | null, buttonInnerText?: string) {
+	public handleButtonState(
+		state: boolean, 
+		buttonTarget: Button | null, 
+		buttonInnerText?: string
+	) {
+		if (!buttonTarget) return
 		const icon = document.createElement("vaadin-icon")
 		icon.setAttribute("src", "/spinner.svg")
-		this.disabledButton.set(state)
-		if (buttonTarget) {
-			if (state === true) {
-				buttonTarget.innerText = ""
-				buttonTarget.appendChild(icon)
-			} 
-			if (state === false) {
-				if (icon) icon.remove()
-				if(buttonInnerText) buttonTarget.innerText = buttonInnerText
-			}
-		}
-		if (this.#renderCallback) {
-			this.#renderCallback()
+		if (state === true) {
+			buttonTarget.disabled = true
+			buttonTarget.innerText = ""
+			buttonTarget.appendChild(icon)
+		} else {
+			buttonTarget.disabled = false
+			const existingIcon = buttonTarget.querySelector("vaadin-icon[src='/spinner.svg']")
+			if (existingIcon) existingIcon.remove()
+			if(buttonInnerText) buttonTarget.innerText = buttonInnerText
 		}
 	}
 
@@ -206,7 +220,7 @@ export class Forms<T> {
 	 * @public
 	 * @param event - The mouse event triggered by the button click.
 	 */
-	public handleActionButtonClick(event: MouseEvent) {
+	public handleActionButtonClick = (event: MouseEvent) => {
 		const form = (event.currentTarget as Button).closest("form")
 		if (form instanceof HTMLFormElement) {
 			form.requestSubmit()
@@ -233,6 +247,7 @@ export class Forms<T> {
 			...oldValues, 
 			[fieldName]: fieldValue
 		})
+		console.log(this.recordsFormData.get())
 		if (this.#validationSchema) {
 			const clientValidationResponse = this.validateFormData(this.recordsFormData.get())
 			if (clientValidationResponse) {
@@ -358,6 +373,7 @@ export class Forms<T> {
 				this.formValidationErrors.set({ ...prevErrors, [fieldName]: messages })
 			}
 		}
+		console.log(this.formValidationErrors.get())
 		if (form) this.updateFieldsValidationState(form)
 	}
 
@@ -400,6 +416,42 @@ export class Forms<T> {
 	}
 
 	/**
+	 * Handles a successful server response by parsing the response based on its content type.
+	 * If the response is JSON, it extracts the `message` and the remaining payload.
+	 * - If the payload contains only one key, it returns its value as the payload.
+	 * - If the payload contains multiple keys, it returns the entire payload object.
+	 * If the response is not JSON, it returns the response text as the message and `null` as the payload.
+	 *
+	 * @public
+	 * @param response - The server response to handle.
+	 * @returns An object containing a `message` and a `payload` extracted from the response.
+	 */
+	public async handleServerSuccessResponse(response: Response) {
+		const contentType = response.headers.get("Content-Type")
+		if (contentType && contentType.includes("application/json")) {
+			const data = await response.json() as ServerSuccessResponse
+			const { message, ...rest } = data
+			let payload: T | Record<string, unknown> | null = null
+			const keys = Object.keys(rest)
+			if (keys.length === 1) {
+				payload = rest[keys[0]] as T
+			} else if (keys.length > 1) {
+				payload = rest
+			}
+			return {
+				message: message ?? "Operation completed successfully!",
+				payload: payload
+			}
+		} else {
+			const text = await response.text()
+			return {
+				message: text,
+				payload: null
+			}
+		}
+	}
+
+	/**
 	 * Handles and parses error responses from server requests based on their content type.
 	 * 
 	 * This method provides a flexible approach to processing server error responses:
@@ -425,15 +477,15 @@ export class Forms<T> {
 	}
 
 	/**
- * Constructs an API endpoint based on the provided configuration.
- * @public
- * @param config - The configuration object specifying the type of action and resource name.
- * @returns The constructed API endpoint as a string.
- * @example
- * // Example usage:
- * const endpoint = getApiEndpoint({ type: "edit", name: "employee" });
- * console.log(endpoint); // Output: "/api/edit-employee"
- */
+	 * Constructs an API endpoint based on the provided configuration.
+	 * @public
+	 * @param config - The configuration object specifying the type of action and resource name.
+	 * @returns The constructed API endpoint as a string.
+	 * @example
+	 * // Example usage:
+	 * const endpoint = getApiEndpoint({ type: "edit", name: "employee" });
+	 * console.log(endpoint); // Output: "/api/edit-employee"
+	 */
 	public getApiEndpoint(config: ApiEndpointConfig) {
 		const { type, name } = config
 		return `/api/${type}-${name}`
@@ -454,26 +506,26 @@ export class Forms<T> {
 	 * @param apiEndpoint - The API endpoint to which the form data will be sent.
 	 * @param form - The `HTMLFormElement` representing the form being submitted.
 	 * @param actionButton - The `Button` element representing the action button, which will be enabled/disabled accordingly.
-	 * @param onSuccess - Callback on successful submission.
+	 * @param onSuccess - Callback on successful submission. Receives an optional payload parameter containing the server response data.
 	 */
 	public async processFormSubmission(
 		formData: FormData,
 		apiEndpoint: string,
 		form: HTMLFormElement,
 		actionButton: Button | null,
-		onSuccess?: () => void
+		onSuccess?: (payload?: T | Record<string, unknown> | null) => void
 	) {
 		const actionButtonText = actionButton?.id.includes("save") ? "Save" : "Submit"
 		const keys = Array.from(formData.keys())
 		if (keys.length === 1 && keys[0] === "id") {
-			this.handleDisabledButton(false, actionButton, actionButtonText)
+			this.handleButtonState(false, actionButton, actionButtonText)
 			return
 		}
 		const formEntries = Object.fromEntries(formData.entries()) as Partial<T>
 		const clientValidation = this.validateFormData(formEntries)
 		if (clientValidation) {
 			this.handleFormValidationErrors(clientValidation, form)
-			this.handleDisabledButton(false, actionButton, actionButtonText)
+			this.handleButtonState(false, actionButton, actionButtonText)
 			return
 		}
 		try {
@@ -491,17 +543,17 @@ export class Forms<T> {
 				} else if (typeof serverErrorResponse === "string") {
 					Toast({ message: serverErrorResponse })
 				}
-				this.handleDisabledButton(false, actionButton, actionButtonText)
+				this.handleButtonState(false, actionButton, actionButtonText)
 			}
 			if (response.ok) {
-				const responseText = await response.text()
-				Toast({ message: responseText })
-				onSuccess?.()
+				const { message, payload } = await this.handleServerSuccessResponse(response)
+				Toast({ message: message })
+				onSuccess?.(payload)
 			}
 		} catch (error) {
 			console.error("There was a problem with the fetch operation:", error)
 		}
-		//console.log('Form data:', Object.fromEntries(formData.entries()))
+		console.log('Form data:', Object.fromEntries(formData.entries()))
 	}
 
 	/**
@@ -546,24 +598,27 @@ export class Forms<T> {
 		formData: FormData,
 		apiEndpoint: string,
 		deleteButton: Button,
-		navigatePath: string,
-		onSuccess?: () => void
+		navigatePath?: string,
+		onSuccess?: (payload?: T | Record<string, unknown> | null) => void
 	) {
 		try {
 			const response = await fetch(apiEndpoint, { 
 				method: "POST", 
 				body: formData 
 			})
-			const responseText = await response.text()
 			if (!response.ok) {
-				Toast({ message: responseText });
-				this.handleDisabledButton(false, deleteButton, "Delete")
+				const serverErrorResponse = await this.handleServerErrorResponse(response)
+				if (typeof serverErrorResponse === "string") {
+					Toast({ message: serverErrorResponse })
+				}
+				this.handleButtonState(false, deleteButton, "Delete")
 				return
 			}
 			if (response.ok) {
-				onSuccess?.()
-				router.navigate(navigatePath)
-				Toast({ message: responseText })
+				const { message, payload } = await this.handleServerSuccessResponse(response)
+				onSuccess?.(payload)
+				if (navigatePath) router.navigate(navigatePath)
+				Toast({ message: message })
 			}
 		} catch (error) {
 			console.error("There was a problem with the fetch operation:", error)
@@ -581,7 +636,7 @@ export class Forms<T> {
 	public resetStoreStates() {
 		this.recordsFormData.set({})
 		this.formValidationErrors.set({})
-		this.disabledButton.set(true)
+		this.actionButtonDisabled.set(true)
 	}
 
 }

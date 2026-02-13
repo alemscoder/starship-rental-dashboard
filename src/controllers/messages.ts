@@ -1,5 +1,5 @@
 import { Toast } from "@components/Toast.ts"
-import type { Messages } from "../types"
+import type { Message } from "../types"
 import type { SupabaseClient } from "@supabase/supabase-js"
 
 /**
@@ -14,7 +14,7 @@ import type { SupabaseClient } from "@supabase/supabase-js"
  */
 export async function markAsRead(
 	supabase: SupabaseClient, 
-	message: Messages, 
+	message: Message, 
 	currentUserReference: number
 ) {
 	const isSender = message.sender_reference === currentUserReference
@@ -35,5 +35,24 @@ export async function markAsRead(
 	} catch (error: any) {
 		console.error("Error marking message as read:", error)
 		Toast({ message: "Error updating message status" })
+	}
+}
+
+/**
+ * Retrieves the last conversation from a list of messages.
+ *
+ * @param messages - The messages object containing an array of conversations.
+ * @returns An object with the `time` and `text` of the last conversation, or 
+ * `null` if there are no conversations.
+ */
+export function getLastConversation(messages: Message) {
+	const { conversations } = messages
+	if (!conversations) return null
+	if (conversations.length > 0) {
+		const lastConversation = conversations[conversations.length - 1]
+		return {
+			time: lastConversation.time,
+			text: lastConversation.text,
+		}
 	}
 }

@@ -7,12 +7,12 @@ import { columnBodyRenderer } from "@vaadin/grid/lit.js"
 import { starshipsStore } from "@store/gridData.store.ts"
 import { starshipHeroStore } from "@store/fileUrl.store.ts"
 import { StarshipDetails } from "@components/panels/StarshipDetails.ts"
-import type { Starships } from "../../types.ts"
+import type { Starship } from "../../types.ts"
 import type { GridColumnBodyLitRenderer } from "@vaadin/grid/lit.js"
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js"
 import type { CheckboxGroupValueChangedEvent } from "@vaadin/checkbox-group"
 
-export class StarshipsGrid extends GridBase<Starships> {
+export class StarshipsGrid extends GridBase<Starship> {
 
 	static #instance: StarshipsGrid
 	protected searchBarInstance: SearchBar | null = null
@@ -20,7 +20,7 @@ export class StarshipsGrid extends GridBase<Starships> {
 	constructor() {
 		super("#starshipsView")
 		this.setupSearchBar()
-		this.initializeGrid()
+		this.initializeGridBase()
 		this.connectRealtimeChannel()
 		if (!!StarshipsGrid.#instance) {
 			return StarshipsGrid.#instance
@@ -58,7 +58,7 @@ export class StarshipsGrid extends GridBase<Starships> {
 		return "/ships/starships"
 	}
 
-	protected getSearchableFields(starship: Starships) {
+	protected getSearchableFields(starship: Starship) {
 		return [
 			starship.make, 
 			starship.model, 
@@ -67,7 +67,7 @@ export class StarshipsGrid extends GridBase<Starships> {
 		]
 	}
 
-	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Starships>) {
+	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Starship>) {
 		const urlReference = this.getUrlReference()
 		const starshipReference =  payload.new.reference.toString()
 		if (urlReference === starshipReference) {
@@ -134,7 +134,7 @@ export class StarshipsGrid extends GridBase<Starships> {
 		`
 	}
 
-	protected starshipsMakeRenderer: GridColumnBodyLitRenderer<Starships> = (starship) => {
+	protected starshipsMakeRenderer: GridColumnBodyLitRenderer<Starship> = (starship) => {
 		return html`
 			<a 
 				@click=${this.handleAnchorNavigation}
@@ -145,7 +145,7 @@ export class StarshipsGrid extends GridBase<Starships> {
 		`
 	}
 
-	protected starshipsStatusRenderer: GridColumnBodyLitRenderer<Starships> = (starship) => {
+	protected starshipsStatusRenderer: GridColumnBodyLitRenderer<Starship> = (starship) => {
 		const { statusText, themeBadge } = processStatusBadge(starship.status)
 		return Badge({
 			text: statusText,
@@ -156,8 +156,6 @@ export class StarshipsGrid extends GridBase<Starships> {
 	protected template() {
 		return html`
 			<vaadin-grid
-				@activate-item=${this.handleActivateItem}
-				@deactivate-item=${this.handleDeactivateItem}
 				@cell-activate=${this.handleCellActivate}
 				.items=${starshipsStore.get()}
 				.cellPartNameGenerator=${this.generatePart}

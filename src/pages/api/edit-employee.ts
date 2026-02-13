@@ -1,9 +1,9 @@
 import { formatZodErrors } from "@utils/zod.ts"
-import { AuthError } from "@supabase/supabase-js"
 import { PostgrestError } from "@utils/errors.ts"
 import { StorageError } from "@supabase/storage-js"
 import { uploadFile, deleteFiles } from "@lib/utils.server.ts"
 import { editEmployeeSchema } from "@schema/employee.schema.ts"
+import { AuthError, isAuthApiError } from "@supabase/supabase-js"
 import { createSupabaseAdmin, serverClient } from "@lib/server.ts"
 import type { APIRoute } from "astro"
 import type { User } from "@supabase/supabase-js"
@@ -63,7 +63,7 @@ export const POST: APIRoute = async (context) => {
 				}
 			)
 			if (employeeError) {
-				throw new AuthError(employeeError.message, employeeError.status)
+				throw employeeError
 			}
 			editedEmployee = employeeData.user
 			useAdminClient = true
@@ -80,7 +80,7 @@ export const POST: APIRoute = async (context) => {
 				}
 			})
 			if (employeeError) {
-				throw new AuthError(employeeError.message, employeeError.status)
+				throw employeeError
 			}
 			editedEmployee = employeeData.user
 			useAdminClient = false
@@ -195,6 +195,14 @@ export const POST: APIRoute = async (context) => {
 		}
 		return new Response("Employee edited successfully!", { status: 200 })
 	} catch (error: any) {
+		// at the moment only in this way was possible catch the duplicate email entered
+		//	if editing in admin role
+		if (isAuthApiError(error) && error.code === "unexpected_failure" && error.status === 500) {
+			return new Response(
+				"The email entered is already in use.",
+				{ status: error.status }
+			)
+		}
 		if (error instanceof AuthError && error.status !== 0) {
 			return new Response(error.message, { status: error.status })
 		}

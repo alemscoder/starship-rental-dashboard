@@ -1,23 +1,22 @@
 import { html, nothing } from "lit-html"
 import { Badge } from "@components/Badge.ts"
 import { GridBase } from "@base/grid/GridBase.ts"
-import { markAsRead } from "@controllers/messages.ts"
-import { getLastConversation } from "@utils/utils.ts"
 import { messagesStore } from "@store/gridData.store.ts"
 import { columnBodyRenderer } from "@vaadin/grid/lit.js"
 import { MessageDetails } from "@components/panels/MessageDetails.ts"
-import type { Messages } from "../../types.ts"
+import { markAsRead, getLastConversation } from "@controllers/messages.ts"
+import type { Message } from "../../types.ts"
 import type { GridColumnBodyLitRenderer } from "@vaadin/grid/lit.js"
 import type { RealtimePostgresInsertPayload, RealtimePostgresUpdatePayload } from "@supabase/supabase-js"
 import "@styles/messages-grid.css"
 
-export class MessagesGrid extends GridBase<Messages> {
+export class MessagesGrid extends GridBase<Message> {
 
 	static #instance: MessagesGrid
 
 	constructor() {
 		super("#messagesView")
-		this.initializeGrid()
+		this.initializeGridBase()
 		this.connectRealtimeChannel()
 		if (!!MessagesGrid.#instance) {
 			return MessagesGrid.#instance
@@ -65,7 +64,7 @@ export class MessagesGrid extends GridBase<Messages> {
 		return "/support/my-messages"
 	}
 
-	protected beforeRecordInserted(payload: RealtimePostgresInsertPayload<Messages>) {
+	protected beforeRecordInserted(payload: RealtimePostgresInsertPayload<Message>) {
 		const loggedInUserReference = this.loggedInUserData?.reference
 		const receiverReference = payload.new.receiver_reference
 		if (receiverReference !== loggedInUserReference) {
@@ -78,7 +77,7 @@ export class MessagesGrid extends GridBase<Messages> {
 		}
 	}
 
-	protected beforeRecordUpdated(payload: RealtimePostgresUpdatePayload<Messages>) {
+	protected beforeRecordUpdated(payload: RealtimePostgresUpdatePayload<Message>) {
 		const loggedInUserReference = this.loggedInUserData?.reference
 		const senderReference = payload.new.sender_reference
 		const receiverReference = payload.new.receiver_reference
@@ -107,7 +106,7 @@ export class MessagesGrid extends GridBase<Messages> {
 		}
 	}
 
-	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Messages>) {
+	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Message>) {
 		const urlReference = this.getUrlReference()
 		const messageReference =  payload.new.reference.toString()
 		if (urlReference === messageReference) {
@@ -116,7 +115,7 @@ export class MessagesGrid extends GridBase<Messages> {
 		}
 	}
 
-	protected async setUnreadMessage(payload: RealtimePostgresUpdatePayload<Messages>) {
+	protected async setUnreadMessage(payload: RealtimePostgresUpdatePayload<Message>) {
 		const loggedInUserReference = this.loggedInUserData?.reference
 		if (loggedInUserReference) {
 			await markAsRead(this.supabase, payload.new, loggedInUserReference)
@@ -130,7 +129,7 @@ export class MessagesGrid extends GridBase<Messages> {
 		})
 	}
 
-	protected messagesRenderer: GridColumnBodyLitRenderer<Messages> = (messages) => {
+	protected messagesRenderer: GridColumnBodyLitRenderer<Message> = (messages) => {
 		const loggedInUserReference = this.loggedInUserData?.reference
 		const isSender = messages.sender_reference === loggedInUserReference
 		const contactInfo = isSender ? messages.receiver : messages.sender
@@ -166,8 +165,6 @@ export class MessagesGrid extends GridBase<Messages> {
 	protected template() {
 		return html`
 			<vaadin-grid
-				@select-item=${this.handleActivateItem}
-				@deselect-item=${this.handleDeactivateItem}
 				@cell-activate=${this.handleCellActivate}
 				.items=${messagesStore.get()}
 				.cellPartNameGenerator=${this.generatePart}

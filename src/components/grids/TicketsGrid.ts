@@ -3,20 +3,18 @@ import { Badge } from "@components/Badge.ts"
 import { GridBase } from "@base/grid/GridBase.ts"
 import { ticketsStore } from "@store/gridData.store.ts"
 import { columnBodyRenderer } from "@vaadin/grid/lit.js"
-import { processStatusBadge, convertDateTime } from "@utils/utils.ts"
-import type { Tickets } from "../../types.ts"
+import { getTicketSelect, processStatusBadge, convertDateTime } from "@utils/utils.ts"
+import type { Ticket } from "../../types.ts"
 import type { GridColumnBodyLitRenderer } from "@vaadin/grid/lit.js"
-import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js"
 import "@styles/tickets-grid.css"
 
-export class TicketsGrid extends GridBase<Tickets> {
+export class TicketsGrid extends GridBase<Ticket> {
 
 	static #instance: TicketsGrid
 
 	constructor() {
 		super("#ticketsView")
-		this.initializeGrid()
-		this.connectRealtimeChannel()
+		this.initializeTicketsGrid()
 		if (!!TicketsGrid.#instance) {
 			return TicketsGrid.#instance
 		}
@@ -38,40 +36,68 @@ export class TicketsGrid extends GridBase<Tickets> {
 		return "tickets"
 	}
 
-	protected getRealtimeChannelName() {
-		return "RealtimeChannelTickets"
+	protected getDbQuery() {
+		return getTicketSelect()
 	}
 
-	protected getDbQuery() {
-		return `
-			id, created_at, reference, pickup_date, return_date, status, total_cost, rent_duration,
-			customers (reference, first_name, last_name, nationality, language, age, email, phone, address),
-			starships (reference, make, model, year, fuel_type, mileage),
-			pickup_location:locations!tickets_pickup_location_fkey (name, reference),
-			return_location:locations!tickets_return_location_fkey (name, reference)
-		`
+	protected getDbOrder() {
+		return { column: "reference", options: { ascending: false } }
 	}
 
 	public getGridUrlRoute() {
 		return "/rentals/tickets"
 	}
 
-	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Tickets>) {
-		const urlReference = this.getUrlReference()
-		const ticketReference =  payload.new.reference.toString()
-		if (urlReference === ticketReference) {
-			//TicketDetails.getInstance().updateDetails(payload.new)
-		}
+	protected async initializeTicketsGrid() {
+		await this.initializeGridBase()
+		const grid = this.getGridElement()
+		this.updateGridItems(grid)
 	}
 
-	protected ticketRenderer: GridColumnBodyLitRenderer<Tickets> = (ticket) => {
+	public addTicket(ticket: Ticket) {
+		const prevTickets = ticketsStore.get() ?? []
+		if (prevTickets.some(t => t.id === ticket.id)) return
+		const result = prevTickets 
+			? [ticket, ...prevTickets ]
+			: [ticket]
+		ticketsStore.set(result)
+		const grid = this.getGridElement()
+		this.updateGridItems(grid)
+	}
+
+	public editTicket(ticket: Ticket) {
+		const prevTickets = ticketsStore.get() ?? []
+		const exists = prevTickets.some(t => t.id === ticket.id)
+		const result = exists
+			? prevTickets.map(t => (t.id === ticket.id ? ticket : t))
+			: [ticket, ...prevTickets]
+		ticketsStore.set(result)
+		const grid = this.getGridElement()
+		this.updateGridItems(grid)
+	}
+
+	public deleteTicket(ticket: Ticket) {
+		const prevTickets = ticketsStore.get() ?? []
+		const result = prevTickets
+		? prevTickets.filter((t) => t.id !== ticket.id)
+		: []
+		ticketsStore.set(result)
+		const grid = this.getGridElement()
+		this.updateGridItems(grid)
+	}
+
+	protected ticketRenderer: GridColumnBodyLitRenderer<Ticket> = (ticket) => {
 		const { themeBadge, statusText } = processStatusBadge(ticket.status)
+		const createdAt = convertDateTime(ticket.created_at)
 		const pickUpDate = convertDateTime(ticket.pickup_date)
 		const returnDate = convertDateTime(ticket.return_date)
 		return html`
 			<div class="ticket-row flex flex-col" aria-label="Ticket Details">
 				<div class="flex flex-wrap items-center gap-x-l gap-y-s">
-					<div class="flex items-center gap-s">
+					<div class="flex flex-col items-start gap-xs">
+						<time class="text-s text-secondary" datetime=${createdAt}>
+							Create at ${createdAt}
+						</time>
 						<a 
 							@click=${this.handleAnchorNavigation} 
 							class="font-semibold text-l" 
@@ -97,10 +123,10 @@ export class TicketsGrid extends GridBase<Tickets> {
 							on ${pickUpDate}
 						</div>
 					</div>
-					<div class="duration" aria-label="Rental Duration: ${ticket.rent_duration} days">
+					<div class="duration" aria-label="Rental Duration: ${ticket.rent_duration}">
 						<vaadin-icon src="/location-right.svg" aria-hidden="true"></vaadin-icon>
 						<br>
-						<span>Rented for ${ticket.rent_duration} days</span>
+						<span>Rented for ${ticket.rent_duration}</span>
 					</div>
 					<div class="deliver-in" aria-label="Return Information">
 					<small class="text-secondary" aria-hidden="true">Deliver in</small>
@@ -115,11 +141,11 @@ export class TicketsGrid extends GridBase<Tickets> {
 				<div class="footer pt-xs flex flex-wrap gap-x-l gap-y-s">
 					<div class="flex items-center gap-s font-semibold" aria-label="Customer Name">
 						<vaadin-icon src="/user.svg" aria-hidden="true"></vaadin-icon>
-						<span>${ticket.customers.first_name} ${ticket.customers.last_name}</span>
+						<span>${ticket.customer.first_name} ${ticket.customer.last_name}</span>
 					</div>
 					<div class="flex items-center gap-s text-secondary" aria-label="Starship Make">
 						<vaadin-icon src="/rocket.svg" aria-hidden="true"></vaadin-icon>
-						<span>${ticket.starships.make}</span>
+						<span>${ticket.starship.make}</span>
 					</div>
 					<div class="flex items-center gap-s text-secondary" aria-label="Total Cost">
 						<vaadin-icon src="/dollar.svg" aria-hidden="true"></vaadin-icon>
@@ -129,11 +155,9 @@ export class TicketsGrid extends GridBase<Tickets> {
 			</div>`
 	}
 
-	protected template() {
+	protected template = () => {
 		return html`
 			<vaadin-grid
-				@select-item=${this.handleActivateItem}
-				@deselect-item=${this.handleDeactivateItem}
 				@cell-activate=${this.handleCellActivate}
 				.items=${ticketsStore.get()}
 				theme="no-border"

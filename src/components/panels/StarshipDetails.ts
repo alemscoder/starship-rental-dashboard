@@ -8,9 +8,9 @@ import { starshipsStore } from "@store/gridData.store.ts"
 import { HeaderSection } from "@sections/HeaderSection.ts"
 import { starshipHeroStore } from "@store/fileUrl.store.ts"
 import { StarshipsGrid } from "@components/grids/StarshipsGrid.ts"
-import type { Starships } from "../../types.ts"
+import type { Starship } from "../../types.ts"
 
-export class StarshipDetails extends DetailsBase<Starships> {
+export class StarshipDetails extends DetailsBase<Starship> {
 
 	static #instance: StarshipDetails
 
@@ -33,6 +33,7 @@ export class StarshipDetails extends DetailsBase<Starships> {
 	protected async initialize() {
 		await StarshipsGrid.getInstance().waitForInitialization()
 		this.data = this.getDataByReference()
+		StarshipsGrid.getInstance().setGridActiveItem(this.data)
 		this.render()
 	}
 
@@ -40,7 +41,7 @@ export class StarshipDetails extends DetailsBase<Starships> {
 		return starshipsStore 
 	}
 	
-	public updateDetails(StarshipDetails: Starships) {
+	public updateDetails(StarshipDetails: Starship) {
 		this.data = StarshipDetails
 		this.render()
 	}

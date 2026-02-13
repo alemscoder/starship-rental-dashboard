@@ -1,9 +1,9 @@
 import { html } from "lit-html"
 import { locationSchema } from "@schema/location.schema.ts"
 import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
-import type { Locations } from "../../types.ts"
+import type { Location } from "../../types.ts"
 
-export class NewLocationDialog extends ActionDialogBase<Locations> {
+export class NewLocationDialog extends ActionDialogBase<Location> {
 
 	constructor() {
 		super("#rentalsMenuBar")
@@ -26,7 +26,7 @@ export class NewLocationDialog extends ActionDialogBase<Locations> {
 		return "vaadin-dialog-overlay.new.location #submitNewLocation"
 	}
 
-	protected getFormFieldNames(fieldType?: string): (keyof Locations)[] {
+	protected getFormFieldNames(fieldType?: string): (keyof Location)[] {
 		if (fieldType === "file") {
 			return ["planet_avatar"]
 		} else {
@@ -37,13 +37,13 @@ export class NewLocationDialog extends ActionDialogBase<Locations> {
 		}
 	}
 	
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const submitButton = this.formController.getActionButton(
 			this.getActionButtonSelector(),
 		)
-		this.formController.handleDisabledButton(true, submitButton)
+		this.formController.handleButtonState(true, submitButton)
 		const formData = new FormData()
 		const locationData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -87,7 +87,7 @@ export class NewLocationDialog extends ActionDialogBase<Locations> {
 	`
 
 	protected renderDialog = () => html`
-		<vaadin-vertical-layout theme="spacing">
+		<vaadin-vertical-layout theme="padding" class="pt-0 items-stretch">
 			<form 
 				@submit=${this.handleSubmitRecord} 
 				class="mt-m flex flex-col gap-s">

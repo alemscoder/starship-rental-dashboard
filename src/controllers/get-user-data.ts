@@ -8,41 +8,56 @@ import { handleLogoutAndRedirect } from "@controllers/handle-logout-and-redirect
  * 
  * This function calls a server action to fetch user data. If `userDataStore` already 
  * contains user data, the function exits early without making a server request.
-
- * **On success, it:**
+ * 
+ * **Success Flow:**
  * - Updates `userDataStore` with the retrieved data
  * - Dispatches a global "user-data-loaded" event to notify other parts of the application
+ * - Returns `true`
  * 
- * **On failure (error or no data):**
- * - Shows a toast notification informing the user
- * - Automatically redirects to the login page after a 5-second delay
+ * **Error Flow:**
+ * - All error cases trigger logout redirect and UI cleanup
+ * - Returns `false`
  * 
- * @returns A promise that resolves when:
- * - The user data is successfully fetched and stored, or
- * - The user is redirected due to an error, or
- * - No fetch is needed (data already exists in store)
- * @throws May indirectly throw errors from:
- * - The server action (`actions.session.getUserData()`)
- * - The logout handler (`handleLogoutAndRedirect()`)
- * @sideeffects
- * - Modifies the global `userDataStore` state
- * - Displays UI notifications via Toast
- * - May trigger page navigation
- * - Dispatches global "user-data-loaded" event on success
+ * **UI Cleanup on Error:**
+ * - Removes "loading" class from login container
+ * - Re-enables disabled login forms
+ * 
+ * @returns A promise that resolves to:
+ * - `true` when user data is successfully loaded or already exists
+ * - `false` when an error occurs or user is redirected to login
+ * 
+ * @throws May propagate errors from:
+ * - Server action (`actions.session.getUserData()`)
+ * - Logout handler (`handleLogoutAndRedirect()`)
  */
-export async function getUserData() {
-	if (userDataStore.get()) return
-	const { data, error } = await actions.session.getUserData()
-	if (error || !data) {
-		Toast({ 
-			message: "Error getting user data. Redirecting to login page."
-		})
-		setTimeout(async () => {
+export async function getUserData(): Promise<boolean> {
+	if (userDataStore.get()) return true
+	try {
+		const { data, error } = await actions.session.getUserData()
+		if (error) {
+			if (error.code === "INTERNAL_SERVER_ERROR") {
+				Toast({ 
+					message: "Error getting user data. Redirecting to login page."
+				})
+			} else if (error.code === "UNAUTHORIZED") {
+				Toast({ 
+					message: "Error getting user logged. Redirecting to login page."
+				})
+			}
 			await handleLogoutAndRedirect()
-		}, 5000)
+			const loginContainer = document.querySelector(".login-container")
+			const loginForm = loginContainer?.querySelector("vaadin-login-form")
+			loginContainer?.classList.remove("loading")
+			if (loginForm && loginForm.disabled) loginForm.disabled = false
+			return false
+		}
+		if (data) userDataStore.set(data)
+		const event = new Event("user-data-loaded")
+		window.dispatchEvent(event)
+		return true
+	} catch (error: any) {
+		console.log(error)
+		Toast({ message: `Error connection: ${error.message}` })
+		return false
 	}
-	if (data) userDataStore.set(data)
-	const event = new Event("user-data-loaded")
-	window.dispatchEvent(event)
-	return Promise.resolve()
 }

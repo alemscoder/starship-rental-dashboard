@@ -1,9 +1,9 @@
 import jwt from "jsonwebtoken"
-import { defineAction } from "astro:actions"
+import { ActionError, defineAction } from "astro:actions"
 import { AuthError } from "@supabase/supabase-js"
 import { PostgrestError } from "@utils/errors.ts"
 import { serverClient, cookieProdOptions } from "@lib/server.ts"
-import type { Employees as User } from "../types.ts"
+import type { Employee as User } from "../types.ts"
 
 const SECRET_JWT_KEY = import.meta.env.SECRET_JWT_KEY
 const JWT_EXPIRE_TIME = import.meta.env.JWT_EXPIRE_TIME
@@ -38,46 +38,53 @@ export const session = {
 	}),
 	getUserData: defineAction({
 		handler: async (input, context) => {
-
 			let userData: User
 			const supabase = serverClient(context)
-
-			const { data: { user }, error: userError } = await supabase.auth.getUser()
-
+			const { data: { user: userAuth }, error: userError } = await supabase.auth.getUser()
 			if (userError) {
-				console.error("Error getting user details.", userError)
-				throw new AuthError(userError.message, userError.status)
+				console.error("Error getting user from Supabase Auth.", userError)
+				throw new ActionError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: userError.message
+				})
 			}
-
+			if (!userAuth) {
+				throw new ActionError({
+					code: "UNAUTHORIZED",
+					message: "User not logged in."
+				})
+			}
 			const { data: queryData, error: queryError } = await supabase
 				.from("employees")
 				.select("*")
-				.eq("id", user?.id)
+				.eq("id", userAuth.id)
 				.returns<User[]>()
-
+				.single()
 			if (queryError) {
-				throw new PostgrestError({ message: queryError.message })
+				console.error("Error getting user details from database", queryError)
+				throw new ActionError({
+					code: "INTERNAL_SERVER_ERROR",
+					message: queryError.message
+				})
 			}
-
-			userData = queryData[0]
-
-			const userDate = new Date(user?.last_sign_in_at!)
+			userData = queryData
+			const userDate = new Date(userAuth.last_sign_in_at!)
 			const dbDate = new Date(userData.last_sign_in_at)
-
 			if (userData.last_sign_in_at === null || dbDate.getTime() !== userDate.getTime()) {
 				const { error: updateError } = await supabase
 					.from("employees")
-					.update({ last_sign_in_at: user?.last_sign_in_at, status: "online" })
-					.eq("id", user?.id)
+					.update({ last_sign_in_at: userAuth.last_sign_in_at, status: "online" })
+					.eq("id", userAuth.id)
 				if (updateError) {
-					throw new PostgrestError({ 
-						message: `Error updating database:\n${updateError.message || "Database name not found."}`
+					console.error("Error updating fields in database", updateError)
+					throw new ActionError({
+						code: "INTERNAL_SERVER_ERROR",
+						message: updateError.message || "Database name not found."
 					})
 				}
-				userData.last_sign_in_at = user?.last_sign_in_at!
+				userData.last_sign_in_at = userAuth.last_sign_in_at!
 				userData.status = "online"
 			}
-
 			return userData
 		}
 	})

@@ -1,9 +1,9 @@
 import { html } from "lit-html"
 import { newEmployeeSchema } from "@schema/employee.schema.ts"
 import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
-import type { Employees } from "../../types.ts"
+import type { Employee } from "../../types.ts"
 
-export class NewEmployeeDialog extends ActionDialogBase<Employees> {
+export class NewEmployeeDialog extends ActionDialogBase<Employee> {
 
 	constructor() {
 		super("#newEmployeeButton")
@@ -26,7 +26,7 @@ export class NewEmployeeDialog extends ActionDialogBase<Employees> {
 		return "vaadin-dialog-overlay.new.employee #submitNewEmployee"
 	}
 
-	protected getFormFieldNames(fieldType?: string): (keyof Employees)[] {
+	protected getFormFieldNames(fieldType?: string): (keyof Employee)[] {
 		if (fieldType === "file") {
 			return ["profile_avatar"]
 		} else {
@@ -37,13 +37,13 @@ export class NewEmployeeDialog extends ActionDialogBase<Employees> {
 		}
 	}
 	
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const submitButton = this.formController.getActionButton(
 			this.getActionButtonSelector(),
 		)
-		this.formController.handleDisabledButton(true, submitButton)
+		this.formController.handleButtonState(true, submitButton)
 		const formData = new FormData()
 		const employeeData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -95,7 +95,7 @@ export class NewEmployeeDialog extends ActionDialogBase<Employees> {
 	`
 
 	protected renderDialog = () => html`
-		<vaadin-vertical-layout theme="spacing">
+		<vaadin-vertical-layout theme="padding" class="pt-0 items-stretch">
 			<form 
 				@submit=${this.handleSubmitRecord} 
 				class="mt-m flex flex-col gap-s">

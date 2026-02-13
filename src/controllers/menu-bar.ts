@@ -1,4 +1,4 @@
-import { html, render } from "lit-html"
+import { html, nothing, render } from "lit-html"
 import { Badge } from "@components/Badge.ts"
 import { processStatusBadge } from "@utils/utils.ts"
 import { ifDefined } from "lit-html/directives/if-defined.js"
@@ -98,6 +98,7 @@ export function createItemAvatar(options: CreateItemAvatarOptions) {
  *
  */
 export function createItemAvatarBase(options: CreateItemAvatarOptions) {
+	const isRootPathname = location.pathname === "/"
 	const { name, initials, status, img } = options
 	const { themeBadge } = processStatusBadge(status)
 	const item = document.createElement("vaadin-menu-bar-item")
@@ -107,16 +108,22 @@ export function createItemAvatarBase(options: CreateItemAvatarOptions) {
 		name=${name} 
 		abbr=${initials} 
 		img=${ifDefined(img)}>
-		<vaadin-tooltip 
-			text=${name}
-			slot="tooltip"
-			position="start">
-		</vaadin-tooltip>
+		${ isRootPathname
+			? nothing
+			: html`
+				<vaadin-tooltip 
+					text=${name}
+					slot="tooltip"
+					position="start">
+				</vaadin-tooltip>
+			`
+		}
 	</vaadin-avatar>
 	${Badge({ 
 		theme: themeBadge,
-		className: "absolute bottom-xs end-xs status-badge"
+		className: `absolute status-badge ${isRootPathname ? "start-l" : ""}`
 	})}
+	${isRootPathname ? html`<span class="text-body">${name}</span>` : nothing}
 	`
 	render(content, item)
 	return item

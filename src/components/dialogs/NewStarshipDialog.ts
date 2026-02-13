@@ -1,9 +1,9 @@
 import { html } from "lit-html"
 import { starshipSchema } from "@schema/starship.schema.ts"
 import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
-import type { Starships } from "../../types.ts"
+import type { Starship } from "../../types.ts"
 
-export class NewStarshipDialog extends ActionDialogBase<Starships> {
+export class NewStarshipDialog extends ActionDialogBase<Starship> {
 
 	constructor() {
 		super("#newStarshipButton")
@@ -23,20 +23,20 @@ export class NewStarshipDialog extends ActionDialogBase<Starships> {
 		return "vaadin-dialog-overlay.new.starship #submitNewStarship"
 	}
 
-	protected getFormFieldNames(): (keyof Starships)[] {
+	protected getFormFieldNames(): (keyof Starship)[] {
 		return [
 			"make", "model", "description", "year", "fuel_type",
 			"license_plate", "mileage", "status"
 		]
 	}
 	
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const submitButton = this.formController.getActionButton(
 			this.getActionButtonSelector(),
 		)
-		this.formController.handleDisabledButton(true, submitButton)
+		this.formController.handleButtonState(true, submitButton)
 		const formData = new FormData()
 		const starshipData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -83,7 +83,7 @@ export class NewStarshipDialog extends ActionDialogBase<Starships> {
 	`
 
 	protected renderDialog = () => html`
-		<vaadin-vertical-layout theme="spacing">
+		<vaadin-vertical-layout theme="padding" class="pt-0 items-stretch">
 			<form 
 				@submit=${this.handleSubmitRecord} 
 				class="mt-m flex flex-col gap-s">

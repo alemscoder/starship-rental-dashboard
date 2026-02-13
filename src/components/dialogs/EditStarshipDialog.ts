@@ -5,9 +5,9 @@ import { StarshipsGrid } from "@components/grids/StarshipsGrid.ts"
 import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
 import { StarshipDetails } from "@components/panels/StarshipDetails.ts"
 import type { Button } from "@vaadin/button"
-import type { Starships } from "../../types.ts"
+import type { Starship } from "../../types.ts"
 
-export class EditStarshipDialog extends ActionDialogBase<Starships> {
+export class EditStarshipDialog extends ActionDialogBase<Starship> {
 
 	constructor() {
 		super("#editStarshipButton")
@@ -30,7 +30,7 @@ export class EditStarshipDialog extends ActionDialogBase<Starships> {
 		return "vaadin-dialog-overlay.edit.starship #saveEditedStarship"
 	}
 
-	protected getFormFieldNames(fieldType?: string): (keyof Starships)[] {
+	protected getFormFieldNames(fieldType?: string): (keyof Starship)[] {
 		if (fieldType === "file") {
 			return ["hero_image"]
 		} else {
@@ -53,13 +53,13 @@ export class EditStarshipDialog extends ActionDialogBase<Starships> {
 		return starshipHeroStore.get()[starshipId]
 	}
 
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const saveButton = this.formController.getActionButton(
 			this.getActionButtonSelector()
 		)
-		this.formController.handleDisabledButton(true, saveButton)
+		this.formController.handleButtonState(true, saveButton)
 		const formData = new FormData()
 		const starshipData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -89,7 +89,7 @@ export class EditStarshipDialog extends ActionDialogBase<Starships> {
 		)
 	}
 
-	protected async handleDeleteRecord(event: MouseEvent) {
+	protected handleDeleteRecord = async (event: MouseEvent) => {
 		const deleteButton = event.currentTarget as Button
 		const formData = new FormData()
 		const starshipDetails = this.getStarshipDetails()
@@ -105,7 +105,7 @@ export class EditStarshipDialog extends ActionDialogBase<Starships> {
 			"Are you sure you want to delete this starship? This action cannot be undone."
 		)
 		if (result === "confirm") {
-			this.formController.handleDisabledButton(true, deleteButton)
+			this.formController.handleButtonState(true, deleteButton)
 			const deleteRequest = this.formController.prepareDeleteFormData(
 				formData, 
 				starshipDetails, 

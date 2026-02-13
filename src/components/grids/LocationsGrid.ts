@@ -5,17 +5,17 @@ import { columnBodyRenderer } from "@vaadin/grid/lit.js"
 import { locationsStore } from "@store/gridData.store.ts"
 import { LocationDetails } from "@components/panels/LocationDetails.ts"
 import { planetAvatarStore, locationLandscapeStore } from "@store/fileUrl.store.ts"
-import type { Locations } from "../../types.ts"
+import type { Location } from "../../types.ts"
 import type { GridColumnBodyLitRenderer } from "@vaadin/grid/lit.js"
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js"
 
-export class LocationsGrid extends GridBase<Locations> {
+export class LocationsGrid extends GridBase<Location> {
 
 	static #instance: LocationsGrid
 
 	constructor() {
 		super("#locationsView")
-		this.initializeGrid()
+		this.initializeGridBase()
 		this.connectRealtimeChannel()
 		if (!!LocationsGrid.#instance) {
 			return LocationsGrid.#instance
@@ -61,7 +61,7 @@ export class LocationsGrid extends GridBase<Locations> {
 		return "/rentals/locations"
 	}
 
-	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Locations>) {
+	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Location>) {
 		const urlReference = this.getUrlReference()
 		const locationReference =  payload.new.reference.toString()
 		if (urlReference === locationReference) {
@@ -69,7 +69,7 @@ export class LocationsGrid extends GridBase<Locations> {
 		}
 	}
 
-	protected locationsNameRenderer: GridColumnBodyLitRenderer<Locations> = (location) => {
+	protected locationsNameRenderer: GridColumnBodyLitRenderer<Location> = (location) => {
 		return html`
 			<a 
 				@click=${this.handleAnchorNavigation}
@@ -80,7 +80,7 @@ export class LocationsGrid extends GridBase<Locations> {
 		`
 	}
 
-	protected locationsGravityRenderer: GridColumnBodyLitRenderer<Locations> = (location) => {
+	protected locationsGravityRenderer: GridColumnBodyLitRenderer<Location> = (location) => {
 		const theme = setGravityTheme(location.gravity)
 		return html`
 			<vaadin-progress-bar
@@ -96,8 +96,6 @@ export class LocationsGrid extends GridBase<Locations> {
 	protected template() {
 		return html`
 			<vaadin-grid
-				@activate-item=${this.handleActivateItem}
-				@deactivate-item=${this.handleDeactivateItem}
 				@cell-activate=${this.handleCellActivate}
 				.items=${locationsStore.get()}
 				.cellPartNameGenerator=${this.generatePart}

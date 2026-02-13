@@ -5,9 +5,9 @@ import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
 import { LocationDetails } from "@components/panels/LocationDetails.ts"
 import { planetAvatarStore, locationLandscapeStore } from "@store/fileUrl.store.ts"
 import type { Button } from "@vaadin/button"
-import type { Locations } from "../../types.ts"
+import type { Location } from "../../types.ts"
 
-export class EditLocationDialog extends ActionDialogBase<Locations> {
+export class EditLocationDialog extends ActionDialogBase<Location> {
 
 	constructor() {
 		super("#editLocationButton")
@@ -31,7 +31,7 @@ export class EditLocationDialog extends ActionDialogBase<Locations> {
 		return "vaadin-dialog-overlay.edit.location #saveEditedLocation"
 	}
 
-	protected getFormFieldNames(fieldType?: string): (keyof Locations)[] {
+	protected getFormFieldNames(fieldType?: string): (keyof Location)[] {
 		if (fieldType === "file") {
 			return ["planet_avatar", "location_landscape"]
 		} else {
@@ -58,13 +58,13 @@ export class EditLocationDialog extends ActionDialogBase<Locations> {
 		return locationLandscapeStore.get()[locationId]
 	}
 
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const saveButton = this.formController.getActionButton(
 			this.getActionButtonSelector()
 		)
-		this.formController.handleDisabledButton(true, saveButton)
+		this.formController.handleButtonState(true, saveButton)
 		const formData = new FormData()
 		const locationData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -99,7 +99,7 @@ export class EditLocationDialog extends ActionDialogBase<Locations> {
 		)
 	}
 
-	protected async handleDeleteRecord(event: MouseEvent) {
+	protected handleDeleteRecord = async (event: MouseEvent) => {
 		const deleteButton = event.currentTarget as Button
 		const formData = new FormData()
 		const locationDetails = this.getLocationDetails()
@@ -115,7 +115,7 @@ export class EditLocationDialog extends ActionDialogBase<Locations> {
 			"Are you sure you want to delete this location? This action cannot be undone."
 		)
 		if (result === "confirm") {
-			this.formController.handleDisabledButton(true, deleteButton)
+			this.formController.handleButtonState(true, deleteButton)
 			const deleteRequest = this.formController.prepareDeleteFormData(
 				formData, 
 				locationDetails, 

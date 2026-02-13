@@ -13,24 +13,10 @@
 	max-width: 96%;
 	height: min-content;
 }
-.logging-in .login-view {
+.loading .login-view {
 	opacity: 0;
 	scale: .96;
 	transform-origin: 50% 50%
-}
-.logging-in:before {
-	content: "";
-	position: absolute;
-	top: 50%;
-	left: 50%;
-	translate: -50% -50%;
-	width: 2rem;
-	height: 2rem;
-	border-radius: 50%;
-	border: 2px solid var(--lumo-contrast-70pct);
-	-webkit-mask-image: radial-gradient(circle at 0% 0%,transparent 25%,black 50%);
-	mask-image: radial-gradient(circle at 0% 0%,transparent 25%,black 50%);
-	animation: spin .5s linear infinite
 }
 .login-container .login-view .View-header {
 	height: auto;

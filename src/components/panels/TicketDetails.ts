@@ -6,51 +6,75 @@ import { DetailsBase } from "@base/panel/DetailsBase.ts"
 import { HeaderSection } from "@sections/HeaderSection.ts"
 import { TicketsGrid } from "@components/grids/TicketsGrid.ts"
 import { processStatusBadge, convertDateTime } from "@utils/utils.ts"
-import type { Tickets } from "../../types.ts"
+import type { Ticket } from "../../types.ts"
 import "@styles/ticket-details.css"
 
-export class TicketDetails extends DetailsBase<Tickets> {
+export class TicketDetails extends DetailsBase<Ticket> {
 
 	static #instance: TicketDetails
+	#initializationPromise: Promise<void> | null = null
 
 	constructor() {
 		super(".tickets-view")
-		this.initialize()
 		if (!!TicketDetails.#instance) {
 			return TicketDetails.#instance
 		}
 		TicketDetails.#instance = this
 	}
 
-	static getInstance() {
+	static getInstance(options = { skipInitialization: false }) {
+		const { skipInitialization } = options
 		if (!TicketDetails.#instance) {
 			new TicketDetails()
+		}
+		if (!skipInitialization) {
+			TicketDetails.#instance.initializeTicketDetails()
 		}
 		return TicketDetails.#instance
 	}
 
-	protected async initialize() {
-		await TicketsGrid.getInstance().waitForInitialization()
-		this.data = this.getDataByReference()
-		this.render()
+	protected async initializeTicketDetails() {
+		this.#initializationPromise = (async () => {
+			await TicketsGrid.getInstance().waitForInitialization()
+			try {
+				this.data = this.getDataByReference()
+			} catch (error) {
+				router.navigate(TicketsGrid.getInstance().getGridUrlRoute())
+				return
+			}
+			TicketsGrid.getInstance().setGridActiveItem(this.data)
+			this.render()
+		})()
+		return this.#initializationPromise
+	}
+
+	public async waitForInitialization() {
+		return this.#initializationPromise ?? Promise.resolve()
 	}
 
 	protected getRecordsStore() {
 		return ticketsStore 
 	}
 
-	public updateDetails(ticketDetails: Tickets) {
-		this.data = ticketDetails
+	public updateTicketDetails(ticket: Ticket) {
+		this.data = ticket
 		this.render()
 	}
 
-	protected closeDetails() {
+	public closeDetails() {
 		TicketsGrid.getInstance().setGridActiveItem(null)
 		router.navigate(TicketsGrid.getInstance().getGridUrlRoute())
 	}
 
+	protected async openEditTicketDialog() {
+		const { EditTicketDialog } = await import("@components/dialogs/EditTicketDialog.ts")
+		const editTicketDialog = new EditTicketDialog()
+		editTicketDialog.open()
+	}
+
 	protected headerTemplate = () => {
 		const { themeBadge, statusText } = processStatusBadge(this.data?.status)
+		const createdAt = convertDateTime(this.data?.created_at)
 		return html`
 			${HeaderSection({
 				templateContent: html`
@@ -67,6 +91,9 @@ export class TicketDetails extends DetailsBase<Tickets> {
 					<div class="flex-auto flex items-center gap-m me-s mt-s">
 						<div>
 							<h2>Ticket Details</h2>
+							<time class="text-s text-secondary ms-s" datetime=${createdAt}>
+								Create at ${createdAt}
+							</time>
 							<div class="text-s text-secondary ms-s font-semibold">
 								${this.data?.reference}
 							</div>
@@ -122,7 +149,7 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/clock.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Duration</h5>
-							<div>${this.data?.rent_duration} days</div>
+							<div>${this.data?.rent_duration}</div>
 						</div>
 					</div>
 					<div class="flex items-center gap-m leading-s">
@@ -146,8 +173,8 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/user.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Full Name</h5>
-							<a href="/rentals/customers/${this.data?.customers.reference}">
-								${this.data?.customers.first_name} ${this.data?.customers.last_name}
+							<a href="/rentals/customers/${this.data?.customer.reference}">
+								${this.data?.customer.first_name} ${this.data?.customer.last_name}
 							</a>
 						</div>
 					</div>
@@ -155,21 +182,21 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/nationality.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Nationality</h5>
-							<div>${this.data?.customers.nationality}</div>
+							<div>${this.data?.customer.nationality}</div>
 						</div>
 					</div>
 					<div class="flex items-center gap-m leading-s">
 						<vaadin-icon class="boxed-icon" src="/language.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Language</h5>
-							<div>${this.data?.customers.language}</div>
+							<div>${this.data?.customer.language}</div>
 						</div>
 					</div>
 					<div class="flex items-center gap-m leading-s">
 						<vaadin-icon class="boxed-icon" src="/calendar.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Age</h5>
-							<div>${this.data?.customers.age}</div>
+							<div>${this.data?.customer.age}</div>
 						</div>
 					</div>
 					<hr>
@@ -178,8 +205,8 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/email.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Email</h5>
-							<a href="mailto:${this.data?.customers.email}">
-								${this.data?.customers.email}
+							<a href="mailto:${this.data?.customer.email}">
+								${this.data?.customer.email}
 							</a>
 						</div>
 					</div>
@@ -187,8 +214,8 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/phone.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Phone</h5>
-							<a href="tel:${this.data?.customers.phone}">
-								${this.data?.customers.phone}
+							<a href="tel:${this.data?.customer.phone}">
+								${this.data?.customer.phone}
 							</a>
 						</div>
 					</div>
@@ -196,7 +223,7 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/address.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Address</h5>
-							<div>${this.data?.customers.address}</div>
+							<div>${this.data?.customer.address}</div>
 						</div>
 					</div>
 				</div>
@@ -212,8 +239,8 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/rocket.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Make</h5>
-							<a href="/ships/starships/${this.data?.starships.reference}">
-								${this.data?.starships.make}
+							<a href="/ships/starships/${this.data?.starship.reference}">
+								${this.data?.starship.make}
 							</a>
 						</div>
 					</div>
@@ -221,28 +248,28 @@ export class TicketDetails extends DetailsBase<Tickets> {
 						<vaadin-icon class="boxed-icon" src="/engine.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Model</h5>
-							<div>${this.data?.starships.model}</div>
+							<div>${this.data?.starship.model}</div>
 						</div>
 					</div>
 					<div class="flex items-center gap-m leading-s">
 						<vaadin-icon class="boxed-icon" src="/calendar.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Year</h5>
-							<div>${this.data?.starships.year}</div>
+							<div>${this.data?.starship.year}</div>
 						</div>
 					</div>
 					<div class="flex items-center gap-m leading-s">
 						<vaadin-icon class="boxed-icon" src="/fuel-type.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Fuel type</h5>
-							<div>${this.data?.starships.fuel_type}</div>
+							<div>${this.data?.starship.fuel_type}</div>
 						</div>
 					</div>
 					<div class="flex items-center gap-m leading-s">
 						<vaadin-icon class="boxed-icon" src="/mileage.svg"></vaadin-icon>
 						<div>
 							<h5 class="text-s m-0">Mileage</h5>
-							<div>${this.data?.starships.mileage}</div>
+							<div>${this.data?.starship.mileage}</div>
 						</div>
 					</div>
 				</div>
@@ -271,14 +298,22 @@ export class TicketDetails extends DetailsBase<Tickets> {
 		return html`
 			<footer class="View-footer">
 				<div class="flex flex-col gap-s items-stretch p-m">
-					<vaadin-button theme="outline" class="flex-auto">
+					<vaadin-button
+						@click=${this.openEditTicketDialog}
+						id="editTicketButton" 
+						theme="outline" 
+						class="flex-auto">
 						Update
 					</vaadin-button>
 					<div class="flex gap-s">
-						<vaadin-button theme="outline" class="flex-auto">
+						<vaadin-button 
+							theme="outline" 
+							class="flex-auto">
 							Refund
 						</vaadin-button>
-						<vaadin-button theme="error outline" class="flex-auto">
+						<vaadin-button 
+							theme="error outline" 
+							class="flex-auto">
 							Cancel Ticket
 						</vaadin-button>
 					</div>

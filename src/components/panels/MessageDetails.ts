@@ -10,13 +10,13 @@ import { MessagesGrid } from "@components/grids/MessagesGrid.ts"
 import { SupportSideNav } from "@pages/support/SupportSideNav.ts"
 import { checkRateLimit, validateMessageContent } from "@utils/message-validator.ts"
 import type { Button } from "@vaadin/button"
-import type { Messages } from "../../types.ts"
+import type { Message } from "../../types.ts"
 import type { Scroller } from "@vaadin/scroller"
 import type { MessageListItem } from "@vaadin/message-list"
 import type { MessageInputSubmitEvent } from "@vaadin/message-input"
 import "@styles/messages-details.css"
 
-export class MessageDetails extends DetailsBase<Messages> {
+export class MessageDetails extends DetailsBase<Message> {
 
 	static #instance: MessageDetails
 	#newMessageCount = 0
@@ -40,6 +40,7 @@ export class MessageDetails extends DetailsBase<Messages> {
 	protected async initialize() {
 		await MessagesGrid.getInstance().waitForInitialization()
 		this.data = this.getDataByReference()
+		MessagesGrid.getInstance().setGridActiveItem(this.data)
 		this.render()
 		this.setSenderClass()
 		this.scrollerUpdate()
@@ -67,7 +68,7 @@ export class MessageDetails extends DetailsBase<Messages> {
 		router.navigate(MessagesGrid.getInstance().getGridUrlRoute())
 	}
 
-	public updateDetails(messageDetails: Messages) {
+	public updateDetails(messageDetails: Message) {
 		const messageList = this.getMessageList()
 		if (messageList) {
 			const currentItems = messageList.items

@@ -136,6 +136,15 @@ export abstract class DetailsBase<T extends { [key: string]: any }> {
 	}
 
 	/**
+	 * Retrieves the current data associated with the instance.
+	 * @public
+	 * @returns The data if available; otherwise, `null`.
+	 */
+	public getData() {
+		return this.data ?? null
+	}
+
+	/**
 	 * Retrieves the data associated with the reference found in the URL.
 	 * If no matching data is found, it shows a toast notification and throws an error.
 	 * @public
@@ -237,6 +246,7 @@ export abstract class DetailsBase<T extends { [key: string]: any }> {
 	 * Observes the target DOM element and renders the details view's template into it.
 	 */
 	protected render() {
+		console.log("RENDER DetailsBase Class EXECUTED")
 		observeAndRender({ 
 			template: this.template(),
 			targetSelector: this.#viewClassSelector,

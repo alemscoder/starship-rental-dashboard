@@ -1,3 +1,4 @@
+import { html } from "lit-html"
 import router from "@router/router.ts"
 import { actions } from "astro:actions"
 import { Toast } from "@components/Toast.ts"
@@ -69,6 +70,12 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	protected downloadingAvatarImages = new Set<string>()
 
 	/**
+	 * Tracks whether the grid is currently loading data.
+	 * @private
+	 */
+	#isLoading: boolean = false
+
+	/**
 	 * The view ID of the DOM element where the grid will be rendered.
 	 * @private
 	 */
@@ -127,18 +134,6 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	protected abstract getDbTableName(): string
 
 	/**
-	 * Retrieves the unique name for the real-time channel associated with the grid.
-	 * 
-	 * The channel name returned is used to subscribe and listen for real-time updates 
-	 * specific to each grid instance. By providing a unique name, each grid can manage 
-	 * its own channel independently, allowing precise control over the updates it receives.
-	 * @protected
-	 * @abstract
-	 * @returns The name of the real-time channel for this grid instance.
-	 */
-	protected abstract getRealtimeChannelName(): string
-
-	/**
 	 * Returns the URL route that should be used for navigation related to the grid.
 	 * @public
 	 * @abstract
@@ -180,6 +175,39 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 
 	/**
 	 * This method provides a placeholder in the base class and can be overridden in
+	 * subclasses to define specific "order" modifier criteria for database queries.
+	 * @hook
+	 * @protected
+	 * @returns An object with the following structure, or `undefined`:
+	 * - `column` (string): 
+	 * - `options` (Object, optional): An object containing additional options for the order.
+	 * - `options.ascending` (boolean, optional): If `true`, the result will be in ascending order
+	 * - `options.nullsFirst` (boolean, optional): If `true`, `null`s appear first. If `false`, `null`s appear last
+	 * - `options.referencedTable` (string, optional): Set this to order a referenced table by its columns.
+	 * - `options.foreignTable` (string, optional): Deprecated, use `referencedTable` instead.
+	 * @example
+	 * // Example of overriding in a subclass to order by "name" ascending
+	 * protected getDbOrder() {
+	 *   return { 
+	 *     column: "name",
+	 *     options: { ascending: true } 
+	 *   }
+	 * }
+	 */
+	protected getDbOrder(): { 
+		column: string; 
+		options?: { 
+			ascending?: boolean, 
+			nullsFirst?: boolean, 
+			referencedTable?: string, 
+			foreignTable?: string 
+		} 
+	} | undefined {
+		return undefined
+	}
+
+	/**
+	 * This method provides a placeholder in the base class and can be overridden in
 	 * subclasses to define the specific database equal filter criteria.
 	 * @hook
 	 * @protected
@@ -204,8 +232,8 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	 * @returns An object with the following structure, or `undefined`:
 	 * - `filters` (string): Defining the "OR" conditions to be applied.
 	 * - `options` (Object, optional): An object containing additional options for the filter.
-	 * - `referencedTable` (string, optional): Filter on referenced tables instead of the parent table.
-	 * - `foreignTable` (string, optional): Deprecated, use `referencedTable` instead.
+	 * - `options.referencedTable` (string, optional): Filter on referenced tables instead of the parent table.
+	 * - `options.foreignTable` (string, optional): Deprecated, use `referencedTable` instead.
 	 * @example
 	 * // Example of overriding in a subclass to apply "OR" filters
 	 * protected getDbOrFilter() {
@@ -219,6 +247,21 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 		filters: string; 
 		options?: { referencedTable?: string, foreignTable?: string } 
 	} | undefined {
+		return undefined
+	}
+
+	/**
+	 * This method provides a placeholder in the base class and can be overridden in
+	 * subclasses to retrieves the unique name for the real-time channel associated with the grid.
+	 * 
+	 * The channel name returned is used to subscribe and listen for real-time updates 
+	 * specific to each grid instance. By providing a unique name, each grid can manage 
+	 * its own channel independently, allowing precise control over the updates it receives.
+	 * @hook
+	 * @abstract
+	 * @returns The name of the real-time channel for this grid instance.
+	 */
+	protected getRealtimeChannelName(): string | undefined {
 		return undefined
 	}
 
@@ -338,6 +381,15 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	}
 
 	/**
+	 * Returns whether the grid is currently loading data.
+	 * @protected
+	 * @returns True if loading, false otherwise.
+	 */
+	protected isLoading() {
+		return this.#isLoading
+	}
+
+	/**
 	 * Fetches data from the database and sets it in the record nano store.
 	 * Handles any errors that occur during data fetching.
 	 * @protected
@@ -348,6 +400,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 		const { tableData, errorMsg } = await fetchData<T>({
 			tableName: this.getDbTableName(), 
 			query: this.getDbQuery(),
+			order: this.getDbOrder(),
 			eq: this.getDbEqFilter(),
 			or: this.getDbOrFilter()
 		})
@@ -368,30 +421,57 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	 * @protected
 	 * @returns Resolves when initialization completes
 	 */
-	protected async initializeGrid() {
+	protected async initializeGridBase() {
 		const recordsStore = this.getRecordsStore()
 		if (recordsStore && recordsStore.get()?.length === 0) {
 			await this.getGridDataAndRender()
 		} else {
 			this.render()
-			return
 		}
 	}
 
 	/**
-	 * Handles the data loading and rendering sequence for the grid.
+	 * Updates the items of the provided grid if the number of items differs from the records store.
+	 *
+	 * Retrieves the records store and compares its length to the grid's current items.
+	 * If they differ, replaces the grid's items with those from the records store and
+	 * requests a content update for the grid.
+	 * @protected
+	 * @param grid - The grid instance to update, or `null` if no grid is provided.
+	 */
+	protected updateGridItems(grid: Grid<T> | null) {
+		const recordsStore = this.getRecordsStore()
+		const storeItems = recordsStore?.get() ?? null
+		if (recordsStore && grid) {
+			if (grid.items !== storeItems) {
+				grid.items = storeItems
+				grid.requestContentUpdate()
+			}
+		}
+	}
+
+	/**
+	 * This method manages the asynchronous data fetching process while 
+	 * maintaining proper UI state through loading indicators. It ensures 
+	 * the grid displays a loading state during data fetch and automatically 
+	 * re-renders with the fetched data once available.
 	 * 
-	 * Internal workflow:
-	 * 1. Sets up initialization promise tracking
-	 * 2. Fetches data via `fetchAndSetData()`
-	 * 3. Waits for data to load
-	 * 4. Triggers UI render
 	 * @public
-	 * @returns Resolves when data is loaded and rendered
+	 * @description
+	 * **Execution flow:**
+	 * 1. Sets internal loading flag to `true`
+	 * 2. Triggers initial render to display loading state
+	 * 3. Initiates data fetch via `fetchAndSetData()` and stores the promise
+	 * 4. Waits for data fetch to complete
+	 * 5. Sets loading flag to `false`
+	 * 6. Triggers final render to display the fetched data
 	 */
 	public async getGridDataAndRender() {
+		this.#isLoading = true
+		this.render()
 		this.#initializationPromise = this.fetchAndSetData()
 		await this.#initializationPromise
+		this.#isLoading = false
 		this.render()
 	}
 
@@ -424,7 +504,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 				this.#realtimeChannel = null
 			}
 		}
-		addUnsubscribe(this.getRealtimeChannelName(), () => {
+		addUnsubscribe(this.getRealtimeChannelName()!, () => {
 			if (this.#removeRealtimeChannel) {
 				this.#removeRealtimeChannel()
 			}
@@ -441,17 +521,17 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	 * @protected
 	 */
 	protected connectRealtimeChannel() {
-		if (!unsubscribeStore.get()[this.getRealtimeChannelName()]) {
+		if (!unsubscribeStore.get()[this.getRealtimeChannelName()!]) {
 			this.setupRealtimeChannel()
 		}
 	}
 
 	/**
 	 * Gets the `vaadin-grid` element from the DOM.
-	 * @protected
+	 * @public
 	 * @returns The `vaadin-grid` element.
 	 */
-	protected getGridElement(): Grid<T> | null {
+	public getGridElement(): Grid<T> | null {
 		return document.querySelector(`${this.#viewIdSelector} > vaadin-grid`)
 	}
 
@@ -664,7 +744,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	 * @protected
 	 */
 	protected subscribeRealtimeChannel() {
-		return this.supabase.channel(this.getRealtimeChannelName())
+		return this.supabase.channel(this.getRealtimeChannelName()!)
 		.on(
 			"postgres_changes", 
 			{ event: "INSERT", schema: "public", table: this.getDbTableName() }, 
@@ -713,7 +793,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 				//    - Reconnect the Realtime channel to resume operations.
 				if (payload.message.includes("Access token has expired")) {
 					console.log("The Realtime System has detected that the access token has expired.")
-					unsubscribeFrom(this.getRealtimeChannelName())
+					unsubscribeFrom(this.getRealtimeChannelName()!)
 					const { error } = await actions.session.refreshSession()
 					if (error) {
 						await handleLogoutAndRedirect()
@@ -722,7 +802,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 						})
 						return
 					}
-					this.initializeGrid()
+					this.initializeGridBase()
 					this.connectRealtimeChannel()
 				}
 				if (payload.status === "error") {
@@ -733,42 +813,22 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	}
 
 	/**
-	 * Navigates to a new route and sets the active grid item based on the URL.
-	 * @protected
-	 * @param path - The string URL path to navigate to.
-	 */
-	protected navigateAndSetActiveItem(path?: string) {
-		const recordsStore = this.getRecordsStore()
-		/** Save the `reference` value */
-		const urlReference = this.getUrlReference()
-		if (router.context.url.href === path) {
-			return
-		}
-		// Navigate to the route path
-		if (path) router.navigate(path)
-		if (recordsStore) {
-			/** Get the employees data from the state */
-			const data = recordsStore.get()
-			/** Find the employee whose `reference` matches with the `urlReference` */
-			const item = data?.find((record: T) => record.reference.toString() === urlReference)
-			// Update the `activeItem` property in the grid
-			this.setGridActiveItem(item)
-		}
-	}
-
-	/**
 	 * Handles anchor link navigation within the grid.
 	 * Prevents the default anchor behavior and uses custom navigation logic.
 	 * @protected
 	 * @param event - The mouse event triggered by clicking an anchor.
 	 */
-	protected handleAnchorNavigation(event: MouseEvent) {
+	protected handleAnchorNavigation = (event: MouseEvent) => {
+		event.preventDefault()
 		/** The `<a>` current element clicked*/
 		const anchor = event.currentTarget as HTMLAnchorElement
 		/** The `path` value in the `anchor` element */
 		const path = anchor.href
-		event.preventDefault()
-		this.navigateAndSetActiveItem(path)
+		if (router.context.url.href === path) {
+			return
+		} else {
+			router.navigate(path)
+		}
 	}
 
 	/**
@@ -778,7 +838,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	 * @protected
 	 * @param event - The event triggered when a grid cell is activated.
 	 */
-	protected handleCellActivate(event: GridCellActivateEvent<T>) {
+	protected handleCellActivate = (event: GridCellActivateEvent<T>) => {
 		const item = event.detail.model.item
 		if (item) {
 			const reference = item.reference.toString()
@@ -791,31 +851,13 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 		}
 	}
 
-	/** 
-	 * Listen for the event `@activate-item` and 
-	 * update the `activeItem` in the grid.
-	 * @protected
-	 */
-	protected handleActivateItem() {
-		this.navigateAndSetActiveItem()
-	}
-
-	/** 
-	 * Listen for the event `@deactivate-item` and 
-	 * update the `activeItem` prop in the grid.
-	 * @protected
-	 */
-	protected handleDeactivateItem() {
-		this.setGridActiveItem(null)
-	}
-
 	/**
 	 * Updates the items displayed in the grid based on current filters and search terms.
 	 * This method applies both the group filters and search term filtering to the original data,
 	 * and updates the grid to display only the matching items.
 	 * @protected
 	 */
-	protected updateGridItems() {
+	protected applyFiltersAndSearchToGrid() {
 		const originalItems = this.getRecordsStore()?.get() || []
 		let filteredData = originalItems
 		const hasActiveFilters = Object.values(this.groupFilters).some(filters => filters.length > 0)
@@ -850,7 +892,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	 */
 	protected handleSearch = debounce((searchTerm: string) => {
 		this.searchTerm = searchTerm
-		this.updateGridItems()
+		this.applyFiltersAndSearchToGrid()
 	}, 300)
 
 	/**
@@ -882,7 +924,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 		if (!groupName) return
 		this.groupFilters[groupName] = value
 		this.activeFiltersCount = this.sumLengthGroupFilters(this.groupFilters)
-		this.updateGridItems()
+		this.applyFiltersAndSearchToGrid()
 	}
 
 	/**
@@ -901,7 +943,7 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 				group.value = []
 			})
 		}
-		this.updateGridItems()
+		this.applyFiltersAndSearchToGrid()
 		this.closePopover()
 	}
 
@@ -936,16 +978,38 @@ export abstract class GridBase<T extends { [key: string]: any }> {
 	}
 
 	/**
-	 * Renders the grid UI by applying the template to the DOM.
-	 * If an error occurred during data fetching, it displays an error message instead.
+	 * Renders a loading spinner.
+	 * 
 	 * @protected
+	 * @returns Template with loading spinner UI
+	 */
+	protected loadingRenderer = () => html`
+		<div class="loading flex justify-center items-center h-full">
+		</div>
+	`
+
+	/**
+	 * This method selects which template to render based on the component's current
+	 * state (loading, error, or data-ready).
+	 * 
+	 * @protected
+	 * @description
+	 * **Rendering priority (evaluated in order):**
+	 * 1. **Error state**: If `#errorMsg` is set, displays error toast and stops rendering
+	 * 2. **Loading state**: If `isLoading()` returns true, renders the loading template via `loadingRenderer()`
+	 * 3. **Ready state**: Otherwise, renders the main grid template via `template()`
+	 * @returns Returns early with Toast notification if an error exists, otherwise 
+	 * renders the template and returns void.
 	 */
 	protected render() {
+		//debugger
+		const isLoading = this.isLoading()
+		console.log("RENDER GridBase Class EXECUTED")
 		if (this.#errorMsg) {
 			return Toast({ message: this.#errorMsg })
 		} else {
 			observeAndRender({ 
-				template: this.template(),
+				template: isLoading ? this.loadingRenderer() : this.template(),
 				targetSelector: this.#viewIdSelector,
 				renderOptions: { host: this }
 			})

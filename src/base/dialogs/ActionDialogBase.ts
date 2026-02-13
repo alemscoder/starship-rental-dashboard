@@ -6,6 +6,8 @@ import { ConfirmDialog } from "@components/dialogs/ConfirmDialog.ts"
 import { dialogHeaderRenderer, dialogRenderer } from "@vaadin/dialog/lit.js"
 import type { Avatar } from "@vaadin/avatar"
 import type { Button } from "@vaadin/button"
+import type { ListBox } from "@vaadin/list-box"
+import type { Select, SelectOpenedChangedEvent } from "@vaadin/select"
 import type { 
 	SelectConfig, 
 	RemoveConfig, 
@@ -124,7 +126,7 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 	 * @returns A promise that resolves if the dialog is successfully 
 	 * closed or if the user cancels the confirmation.
 	 */
-	protected async close() {
+	protected close = async () => {
 		const unsavedChanges = this.formController.handleUnsavedChanges()
 		if (unsavedChanges) {
 			const result = await ConfirmDialog({
@@ -147,12 +149,9 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 	 * @protected
 	 */
 	protected closeDialog() {
-		this.dialogOpened.set(false)
-		if (this.dialog) {
-			this.dialog.opened = this.dialogOpened.get()
-			this.formController.resetStoreStates()
-			render(nothing, this.container)
-		}
+		super.closeDialog()
+		this.formController.resetStoreStates()
+		render(nothing, this.container)
 	}
 
 	/**
@@ -166,7 +165,7 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 	 * @protected
 	 * @param event - The input event triggered by the field change. 
 	 */
-	protected handleFieldChange(event: InputEvent) {
+	protected handleFieldChange = (event: InputEvent) => {
 		this.formController.handleFieldChange(event)
 	}
 
@@ -182,7 +181,7 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 	 * @param event - The mouse click event triggered by the user clicking 
 	 * the "add" image button (either for avatar or hero).
 	 */
-	protected openSelectImage(event: MouseEvent) {
+	protected openSelectImage = (event: MouseEvent) => {
 		const target = event.currentTarget as Button
 		const form = target.closest("form")
 		if (!form) return
@@ -192,19 +191,22 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 	}
 
 	/**
-	 * Handles the image selection from the file input.
+	 * Handles the selection of an image file from an input element within a form.
 	 * 
-	 * This method is triggered when the user selects an image file through 
-	 * the file input. It processes the selected file, updates the form data 
-	 * with the new image, and sets the corresponding image preview. If validation 
-	 * errors are present, the method displays the error messages next to the 
-	 * image input fields. It also enables or disables the action buttons 
-	 * depending on the form validation state.
+	 * This method performs the following actions:
+	 * - Determines the image type (avatar or hero) based on the input element's ID.
+	 * - Retrieves configuration for the selected image type, including references to 
+	 *   UI elements and image setting logic.
+	 * - Updates the form data with the selected file and displays the image preview.
+	 * - Removes any existing validation errors related to the image input.
+	 * - Validates the updated form data and displays validation errors if present.
+	 * - Reveals the remove image button if applicable.
+	 * - Enables the action button if the dialog is not for creating a new record and 
+	 *   there are no validation errors.
 	 * @protected
-	 * @param event - The change event triggered when the user selects an image 
-	 * file from the input field.
+	 * @param event - The event triggered by selecting an image file.
 	 */
-	protected handleSelectImage(event: Event) {
+	protected handleSelectImage = (event: Event) => {
 		const inputFile = event.currentTarget as HTMLInputElement
 		const form = inputFile.closest("form")
 		if (!form) return
@@ -259,24 +261,29 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 			}
 		}
 		if (removeButton) removeButton.removeAttribute("hidden")
-		this.formController.enableActionButton()
+		const isDialogNewRecord = this.getDialogId().includes("new")
+		const hasValidationError = this.formController.formValidationErrors.get()[inputFile.name]
+		if (isDialogNewRecord || hasValidationError) {
+			return
+		} else {
+			this.formController.enableActionButton()
+		}
 	}
 
 	/**
-	 * Handles the removal of an image.
+	 * Handles the removal of an image from the form when the remove button is clicked.
 	 * 
-	 * This method is triggered when the user clicks the remove button for
-	 * either the avatar or hero image. It clears the corresponding image input
-	 * field, update or delete the `recordsFormData` key based on whether it is
-	 * an edit dialog or not. The method also resets the image preview, handles the 
-	 * removal of any validation errors and updates the visibility of the 
-	 * remove button accordingly. Finally, it enables or disables the action 
-	 * buttons based on the current form state.
+	 * This method:
+	 * - Determines the image type (avatar or hero) based on the button's ID.
+	 * - Clears the corresponding file input value and image preview.
+	 * - For edit dialogs sets form data key to empty string.
+	 * - Removes any validation error messages related to the image input.
+	 * - Hides the remove button after the image is removed.
+	 * - Enables the action button if the dialog is not for creating a new record.
 	 * @protected
-	 * @param event - The click event triggered when the user clicks the remove 
-	 * button for the image.
+	 * @param event - The mouse event triggered by clicking the remove image button.
 	 */
-	protected handleRemoveImage(event: MouseEvent) {
+	protected handleRemoveImage = (event: MouseEvent) => {
 		const target = event.currentTarget as Button
 		const form = target.closest("form")
 		if (!form) return
@@ -313,7 +320,12 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 			this.removeValidationError(validationError)
 		}
 		target.setAttribute("hidden", "")
-		this.formController.enableActionButton()
+		const isDialogNewRecord = this.getDialogId().includes("new")
+		if (isDialogNewRecord) {
+			return
+		} else {
+			this.formController.enableActionButton()
+		}
 	}
 
 	/**
@@ -355,6 +367,48 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 		const result = await ConfirmDialog({ header, message, confirmText, confirmTheme })
 		return result
 	}
+
+	/**
+	 * Loads a selected list when a selection is opened and the current list is not present.
+	 *
+	 * If the selection is opened and the current list is not loaded, this method fetches the list,
+	 * requests a content update for the select element, and focuses the corresponding ListBox.
+	 * 
+	 * @protected
+	 * @async
+	 * @template T - The type of items in the list.
+	 * @param event - The event triggered when the select is opened or changed.
+	 * @param currentList - The current list of items, or null if not loaded.
+	 * @param fetchFn - An asynchronous function to fetch and populate the list.
+	 * @param listBoxId - The CSS selector or ID of the ListBox element to focus after loading.
+	 *
+	 */
+	protected loadSelectedList = async <T>(
+		event: SelectOpenedChangedEvent,
+		currentList: T[] | null,
+		fetchFn: () => Promise<void>,
+		listBoxId: string
+	) => {
+		const selectElement = event.target as Select
+		if (event.detail.value && !currentList) {
+			await fetchFn()
+			selectElement.requestContentUpdate()
+			const listBox = document.querySelector(listBoxId) as ListBox
+			if (listBox) listBox.focus()
+		}
+	}
+	/**
+	 * Renders a loading spinner.
+	 * 
+	 * @protected
+	 * @param className - Optional additional CSS class for styling.
+	 * @returns Template with loading spinner UI
+	 */
+	protected loadingRenderer = (className?: string) => html`
+		<div class="flex justify-center items-center h-xl ${className}">
+			<vaadin-icon src="/spinner.svg"></vaadin-icon>
+		</div>
+	`
 
 	/**
 	 * Renders the avatar image section with controls.
@@ -539,27 +593,27 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 	 * @returns A template containing the appropriate action buttons.
 	 */
 	protected formActionButtonsTemplate(config: ActionButtonsTemplateConfig) {
-		const { formType, submitButtonId } = config
+		const { formType, submitButtonId, submitButtonClassName, editContainerClassName } = config
 		const loggedInUserRole = this.loggedInUserData?.role
 		if (formType === "add") {
 			return html`
 				<vaadin-button
-					?disabled=${this.formController.disabledButton.get()}
+					?disabled=${this.formController.actionButtonDisabled.get()}
 					@click=${this.formController.handleActionButtonClick}
 					id=${submitButtonId}
-					class="mt-m" 
+					class="mt-m ${submitButtonClassName}"
 					theme="primary">
 					Submit
 				</vaadin-button>
 				<input 
-					?disabled=${this.formController.disabledButton.get()} 
+					?disabled=${this.formController.actionButtonDisabled.get()} 
 					type="submit" 
 					hidden 
 				/>
 			`
 		} else if (formType === "edit") {
 			return html`
-				<div class="flex items-center justify-between w-full gap-m">
+				<div class="flex items-center justify-between w-full gap-m ${editContainerClassName}">
 					${
 						loggedInUserRole === "admin"
 						? html`
@@ -579,14 +633,15 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 						Cancel
 					</vaadin-button>
 					<vaadin-button
-						?disabled=${this.formController.disabledButton.get()} 
-						@click=${this.formController.handleActionButtonClick} 
+						?disabled=${this.formController.actionButtonDisabled.get()} 
+						@click=${this.formController.handleActionButtonClick}
+						class=${submitButtonClassName}
 						id=${submitButtonId} 
 						theme="primary">
 						Save
 					</vaadin-button>
 					<input 
-						?disabled=${this.formController.disabledButton.get()} 
+						?disabled=${this.formController.actionButtonDisabled.get()} 
 						type="submit" 
 						hidden 
 					/>
@@ -602,7 +657,7 @@ export abstract class ActionDialogBase<T extends { [key: string]: any }> extends
 				.noCloseOnOutsideClick=${true}
 				.overlayClass=${this.getDialogClass()}
 				${dialogHeaderRenderer(() => this.renderHeader()!)}
-				${dialogRenderer(() => this.renderDialog()!, [this.formController?.disabledButton.get()])}
+				${dialogRenderer(() => this.renderDialog()!, [this.formController?.actionButtonDisabled.get()])}
 				id=${this.getDialogId().slice(1)} 
 				theme="no-padding">
 			</vaadin-dialog>

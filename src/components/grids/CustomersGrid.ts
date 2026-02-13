@@ -3,17 +3,17 @@ import { GridBase } from "@base/grid/GridBase.ts"
 import { columnBodyRenderer } from "@vaadin/grid/lit.js"
 import { customersStore } from "@store/gridData.store.ts"
 import { CustomerDetails } from "@components/panels/CustomerDetails.ts"
-import type { Customers } from "../../types.ts"
+import type { Customer } from "../../types.ts"
 import type { GridColumnBodyLitRenderer } from "@vaadin/grid/lit.js"
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js"
 
-export class CustomersGrid extends GridBase<Customers> {
+export class CustomersGrid extends GridBase<Customer> {
 
 	static #instance: CustomersGrid
 
 	constructor() {
 		super("#customersView")
-		this.initializeGrid()
+		this.initializeGridBase()
 		this.connectRealtimeChannel()
 		if (!!CustomersGrid.#instance) {
 			return CustomersGrid.#instance
@@ -44,7 +44,7 @@ export class CustomersGrid extends GridBase<Customers> {
 		return "/rentals/customers"
 	}
 
-	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Customers>) {
+	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Customer>) {
 		const urlReference = this.getUrlReference()
 		const customerReference =  payload.new.reference.toString()
 		if (urlReference === customerReference) {
@@ -52,7 +52,7 @@ export class CustomersGrid extends GridBase<Customers> {
 		}
 	}
 
-	protected customersRenderer: GridColumnBodyLitRenderer<Customers> = (customer) => {
+	protected customersRenderer: GridColumnBodyLitRenderer<Customer> = (customer) => {
 		return html`
 			<a 
 				@click=${this.handleAnchorNavigation}
@@ -66,8 +66,6 @@ export class CustomersGrid extends GridBase<Customers> {
 	protected template() {
 		return html`
 			<vaadin-grid
-				@activate-item=${this.handleActivateItem}
-				@deactivate-item=${this.handleDeactivateItem}
 				@cell-activate=${this.handleCellActivate}
 				.items=${customersStore.get()}
 				.cellPartNameGenerator=${this.generatePart}

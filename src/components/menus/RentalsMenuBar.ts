@@ -43,6 +43,12 @@ export function RentalsMenuBar() {
 		},
 	]
 
+	const openNewTicketDialog = async () => {
+		const { NewTicketDialog } = await import("@components/dialogs/NewTicketDialog.ts")
+		const newTicketDialog = new NewTicketDialog()
+		newTicketDialog.open()
+	}
+
 	const openNewCustomerDialog = async () => {
 		const { NewCustomerDialog } = await import("@components/dialogs/NewCustomerDialog.ts")
 		const newCustomerDialog = new NewCustomerDialog()
@@ -57,6 +63,9 @@ export function RentalsMenuBar() {
 
 	const itemSelected = (event: MenuBarItemSelectedEvent) => {
 		const item = event.detail.value
+		if (item.className?.includes("ticket")) {
+			openNewTicketDialog()
+		}
 		if (item.className?.includes("customer")) {
 			openNewCustomerDialog()
 		}

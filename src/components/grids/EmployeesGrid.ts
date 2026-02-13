@@ -9,7 +9,7 @@ import { employeesStore } from "@store/gridData.store.ts"
 import { processStatusBadge, convertDateTime } from "@utils/utils.ts"
 import { EmployeeDetails } from "@components/panels/EmployeeDetails.ts"
 import { profileAvatarStore, profileHeroStore } from "@store/fileUrl.store.ts"
-import type { Employees } from "../../types.ts"
+import type { Employee } from "../../types.ts"
 import type { GridColumnBodyLitRenderer } from "@vaadin/grid/lit.js"
 import type { RealtimePostgresUpdatePayload } from "@supabase/supabase-js"
 import type { CheckboxGroupValueChangedEvent } from "@vaadin/checkbox-group"
@@ -23,9 +23,9 @@ import "@styles/employees-grid.css"
  * employee records, including avatars and status updates.
  * It follows the singleton pattern to ensure that only one instance 
  * of the class exists during the application runtime.
- * @extends GridBase<Employees>
+ * @extends GridBase<Employee>
  */
-export class EmployeesGrid extends GridBase<Employees> {
+export class EmployeesGrid extends GridBase<Employee> {
 
 	/** 
 	 * A private static property to hold the singleton instance.
@@ -65,7 +65,7 @@ export class EmployeesGrid extends GridBase<Employees> {
 	constructor() {
 		super("#employeesView")
 		this.setupSearchBar()
-		this.initializeGrid()
+		this.initializeGridBase()
 		this.connectRealtimeChannel()
 		if (!!EmployeesGrid.#instance) {
 			return EmployeesGrid.#instance
@@ -115,11 +115,11 @@ export class EmployeesGrid extends GridBase<Employees> {
 		return "/settings/employees"
 	}
 
-	protected getSearchableFields(employee: Employees) {
+	protected getSearchableFields(employee: Employee) {
 		return [employee.first_name, employee.last_name, employee.job_title]
 	}
 
-	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Employees>) {
+	protected afterRecordUpdated(payload: RealtimePostgresUpdatePayload<Employee>) {
 		const urlReference = this.getUrlReference()
 		const employeeReference =  payload.new.reference.toString()
 		if (urlReference === employeeReference) {
@@ -127,7 +127,7 @@ export class EmployeesGrid extends GridBase<Employees> {
 		}
 	}
 
-	protected updateUserStoreData(payload: RealtimePostgresUpdatePayload<Employees>) {
+	protected updateUserStoreData(payload: RealtimePostgresUpdatePayload<Employee>) {
 		const employeeId = payload.new.id
 		const userId = this.loggedInUserData?.id
 		if (employeeId === userId) {
@@ -254,7 +254,7 @@ export class EmployeesGrid extends GridBase<Employees> {
 	 * @param employee - The employee record being rendered.
 	 * @returns The Lit-HTML template to render.
 	 */
-	protected employeeInfoRenderer: GridColumnBodyLitRenderer<Employees> = (employee) => {
+	protected employeeInfoRenderer: GridColumnBodyLitRenderer<Employee> = (employee) => {
 		/** The abbreviation composed from `first_name` first letter
 		 * and `last_name` first letter */
 		const abbr = `${employee.first_name[0]}${employee.last_name[0]}`
@@ -300,7 +300,7 @@ export class EmployeesGrid extends GridBase<Employees> {
 	 * @param employee - The employee record being rendered.
 	 * @returns The Lit-HTML template to render.
 	 */
-	protected employeeStatusRenderer: GridColumnBodyLitRenderer<Employees> = (employee) => {
+	protected employeeStatusRenderer: GridColumnBodyLitRenderer<Employee> = (employee) => {
 		const { statusText, themeBadge } = processStatusBadge(employee.status)
 		const createdAt = convertDateTime(employee.created_at)
 		return html`
@@ -331,8 +331,6 @@ export class EmployeesGrid extends GridBase<Employees> {
 	protected template() {
 		return html`
 			<vaadin-grid
-				@activate-item=${this.handleActivateItem}
-				@deactivate-item=${this.handleDeactivateItem}
 				@cell-activate=${this.handleCellActivate}
 				.items=${employeesStore.get()}
 				.cellPartNameGenerator=${this.generatePart}

@@ -2,13 +2,12 @@ import { html } from "lit-html"
 import router from "@router/router.ts"
 import { map } from "lit/directives/map.js"
 import { browserClient } from "@lib/client.ts"
-import { markAsRead } from "@controllers/messages.ts"
-import { getLastConversation } from "@utils/utils.ts"
 import { DialogBase } from "@base/dialogs/DialogBase.ts"
 import { messagesStore } from "@store/gridData.store.ts"
 import { userDataStore } from "@store/userData.store.ts"
+import { markAsRead, getLastConversation } from "@controllers/messages.ts"
 import { dialogHeaderRenderer, dialogRenderer } from "@vaadin/dialog/lit.js"
-import type { Messages } from "../../types.ts"
+import type { Message } from "../../types.ts"
 import "@styles/notifications-dialog.css"
 
 /**
@@ -111,7 +110,7 @@ export class NotificationsDialog extends DialogBase {
 	 * @param messages - Array of message objects to process and render
 	 * @returns A lit-html template containing list items for each unread notification
 	 */
-	protected renderNotificationPreview(messages: Messages[]) {
+	protected renderNotificationPreview(messages: Message[]) {
 		const loggedInUserReference = userDataStore.get()?.reference
 		const unreadMessages = messages.filter(message => {
 			const isSender = message.sender_reference === loggedInUserReference

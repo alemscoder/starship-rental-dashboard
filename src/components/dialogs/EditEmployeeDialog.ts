@@ -5,7 +5,7 @@ import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
 import { EmployeeDetails } from "@components/panels/EmployeeDetails.ts"
 import { profileAvatarStore, profileHeroStore } from "@store/fileUrl.store.ts"
 import type { Button } from "@vaadin/button"
-import type { Employees } from "../../types.ts"
+import type { Employee } from "../../types.ts"
 
 /**
  * Represents a dialog for modifying an existing employee's details.
@@ -14,9 +14,9 @@ import type { Employees } from "../../types.ts"
  * for editing and deleting employee records. It implements abstract methods from the
  * base class and adds additional behavior specific to the employee modification process.
  * 
- * @extends {ActionDialogBase<Employees>}
+ * @extends {ActionDialogBase<Employee>}
  */
-export class EditEmployeeDialog extends ActionDialogBase<Employees> {
+export class EditEmployeeDialog extends ActionDialogBase<Employee> {
 
 	constructor() {
 		super("#editEmployeeButton")
@@ -40,7 +40,7 @@ export class EditEmployeeDialog extends ActionDialogBase<Employees> {
 		return "vaadin-dialog-overlay.edit.employee #saveEditedEmployee"
 	}
 
-	protected getFormFieldNames(fieldType?: string): (keyof Employees)[] {
+	protected getFormFieldNames(fieldType?: string): (keyof Employee)[] {
 		if (fieldType === "file") {
 			return ["profile_avatar", "profile_hero"]
 		} else {
@@ -89,13 +89,13 @@ export class EditEmployeeDialog extends ActionDialogBase<Employees> {
 		return profileHeroStore.get()[employeeId]
 	}
 
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const saveButton = this.formController.getActionButton(
 			this.getActionButtonSelector(),
 		)
-		this.formController.handleDisabledButton(true, saveButton)
+		this.formController.handleButtonState(true, saveButton)
 		const formData = new FormData()
 		const employeeData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -130,7 +130,7 @@ export class EditEmployeeDialog extends ActionDialogBase<Employees> {
 		)
 	}
 
-	protected async handleDeleteRecord(event: MouseEvent) {
+	protected handleDeleteRecord = async (event: MouseEvent) => {
 		const deleteButton = event.currentTarget as Button
 		const formData = new FormData()
 		const employeeDetails = this.getEmployeeDetails()
@@ -146,7 +146,7 @@ export class EditEmployeeDialog extends ActionDialogBase<Employees> {
 			"Are you sure you want to delete this employee? This action cannot be undone."
 		)
 		if (result === "confirm") {
-			this.formController.handleDisabledButton(true, deleteButton)
+			this.formController.handleButtonState(true, deleteButton)
 			const deleteRequest = this.formController.prepareDeleteFormData(
 				formData, 
 				employeeDetails, 

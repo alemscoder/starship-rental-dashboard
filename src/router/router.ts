@@ -10,6 +10,7 @@ import { togglePanels, closeDetailsPanels } from "@controllers/handle-panels.ts"
 import { handleSessionValidation } from "@controllers/handle-session-validation.ts"
 //import { measurePerformance } from "@utils/dom-performance.ts"
 import type { Config, Context } from "@thepassle/app-tools/router.js"
+import { Dashboard } from "@components/Dashboard"
 
 /** Stores the boolean result returned by the function `handleSessionValidation()` */
 let sessionInvalid: boolean
@@ -45,10 +46,11 @@ const routerConfig: Config = {
 			path: "/",
 			title: "Dashboard",
 			plugins: [
-				redirect("/rentals/tickets"),
+				//redirect("/rentals/tickets"),
 				{
 					name: "clearViews",
 					afterNavigation: () => {
+						Dashboard.getInstance().destroyChart()
 						litHtmlRender({ template: nothing, targetSelector: ".View-container" })
 						litHtmlRender({ template: nothing, targetSelector: "vaadin-scroller#sideNavScroller" })
 					}
@@ -124,7 +126,10 @@ const routerConfig: Config = {
 				await togglePanels({ 
 					viewSelector: ".tickets-view", 
 					routerNavigate: "/rentals/tickets",
-					awaitFor: [TicketsGrid.getInstance().waitForInitialization()] 
+					awaitFor: [
+						TicketsGrid.getInstance().waitForInitialization(), 
+						TicketDetails.getInstance().waitForInitialization()
+					] 
 				})
 			}
 		},
@@ -461,7 +466,8 @@ router.addEventListener("route-changed", async (event) => {
 	// Validate the user's session and retrieve user data if necessary.
 	sessionInvalid = await handleSessionValidation(routeContext)
 	if (!routeContext.url.pathname.includes("login") && !sessionInvalid) {
-		await getUserData()
+		const success = await getUserData()
+		if (!success) return
 	}
 	if (sessionInvalid) return
 	

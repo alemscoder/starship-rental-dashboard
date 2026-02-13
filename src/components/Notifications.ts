@@ -51,7 +51,7 @@ export function Notifications() {
 	 *      a notification is rendered.
 	 * 4. **No Change in Message Count**:
 	 *    - If there are no changes in the number of messages, no notification is rendered.
-	 * 5. **Messages Marked as Read**:
+	 * 5. **Message Marked as Read**:
 	 *    - If unread messages are marked as read, notifications are updated accordingly:
 	 *      - A notification is rendered if there are still unread messages.
 	 *      - No notification is rendered if all messages are read.
@@ -110,7 +110,7 @@ export function Notifications() {
 		observeAndRender({
 			template: hasNotification() ? Badge({
 				theme: "small primary error",
-				className: "absolute top-xs end-xs",
+				className: "absolute top-xs start-l",
 				"aria-label": "Unread notifications"
 			}) : nothing,
 			targetSelector: "vaadin-button.notifications",
@@ -129,19 +129,30 @@ export function Notifications() {
 	 * the `openNotificationsDialog` function when clicked.
 	 * @returns The HTML template for the Notifications button.
 	 */
-	const template = () => html`
-		<vaadin-button
-			@click=${openNotificationsDialog}
-			theme="tertiary icon contrast" 
-			class="notifications unread">
-			<vaadin-icon src="/notification.svg"></vaadin-icon>
-			<vaadin-tooltip 
-				slot="tooltip" 
-				text="Notifications" 
-				position="start">
-			</vaadin-tooltip>
-		</vaadin-button>
-	`
+	const template = () => {
+		const isRootPathname = location.pathname === "/"
+		return html`
+			<vaadin-button
+				@click=${openNotificationsDialog}
+				theme="tertiary contrast ${isRootPathname ? "" : "icon"}" 
+				class="notifications unread ${isRootPathname ? "w-full" : ""}">
+				<vaadin-icon
+					slot=${isRootPathname ? "prefix" : ""} 
+					src="/notification.svg">
+				</vaadin-icon>
+				${ isRootPathname 
+					? html`<div>Notifications</div>`
+					: html`
+						<vaadin-tooltip 
+							slot="tooltip" 
+							text="Notifications" 
+							position="start">
+						</vaadin-tooltip>
+					`
+				}
+			</vaadin-button>
+		`
+	}
 
 	/**
 	 * Renders the Notifications button.

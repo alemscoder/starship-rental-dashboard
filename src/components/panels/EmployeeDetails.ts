@@ -11,7 +11,7 @@ import { SettingsSideNav } from "@pages/settings/SettingsSideNav.ts"
 import { processStatusBadge, convertDateTime } from "@utils/utils.ts"
 import { employeesStore, messagesStore } from "@store/gridData.store.ts"
 import { profileAvatarStore, profileHeroStore } from "@store/fileUrl.store.ts"
-import type { Employees, Messages } from "../../types.ts"
+import type { Employee, Message } from "../../types.ts"
 
 /**
  * The `EmployeeDetails` class manages the display and interaction with employee details in the UI.
@@ -25,9 +25,9 @@ import type { Employees, Messages } from "../../types.ts"
  * - Initiating message conversations
  * - Downloading and displaying profile images
  * - Providing edit capabilities for admins or self
- * @extends DetailsBase<Employees>
+ * @extends DetailsBase<Employee>
  */
-export class EmployeeDetails extends DetailsBase<Employees> {
+export class EmployeeDetails extends DetailsBase<Employee> {
 
 	/** A private static property to hold the singleton instance of `EmployeeDetails`
 	 * @static 
@@ -73,6 +73,7 @@ export class EmployeeDetails extends DetailsBase<Employees> {
 	protected async initialize() {
 		await EmployeesGrid.getInstance().waitForInitialization()
 		this.data = this.getDataByReference()
+		EmployeesGrid.getInstance().setGridActiveItem(this.data)
 		this.render()
 	}
 
@@ -80,7 +81,7 @@ export class EmployeeDetails extends DetailsBase<Employees> {
 		return employeesStore 
 	}
 	
-	public updateDetails(employeeDetails: Employees) {
+	public updateDetails(employeeDetails: Employee) {
 		this.data = employeeDetails
 		this.render()
 	}
@@ -111,8 +112,8 @@ export class EmployeeDetails extends DetailsBase<Employees> {
 	 * @returns A promise that resolves to `true` if a message thread exists and navigation occurs, otherwise undefined.
 	 * @throws Displays a toast notification if an error occurs during the process.
 	 * @note The query uses the `or` method to check for an existing message thread in either direction:
-	 * - Messages where the current employee is the receiver and logged-in user is the sender.
-	 * - Messages where the logged-in user is the receiver and current employee is the sender.
+	 * - Message where the current employee is the receiver and logged-in user is the sender.
+	 * - Message where the logged-in user is the receiver and current employee is the sender.
 	 * - This ensures we find any existing conversation between the two parties regardless of who initiated it.
 	 */
 	protected existingMessage = async (currentEmployeeReference: number, loggedInUserReference: number) => {
@@ -125,7 +126,7 @@ export class EmployeeDetails extends DetailsBase<Employees> {
 					`and(receiver_reference.eq.${loggedInUserReference},sender_reference.eq.${currentEmployeeReference})`
 				)
 				.limit(1)
-				.returns<Messages[]>()
+				.returns<Message[]>()
 				.maybeSingle()
 			if (error) throw error
 			if (data) {
@@ -168,7 +169,7 @@ export class EmployeeDetails extends DetailsBase<Employees> {
 				})
 				.select("reference")
 				.limit(1)
-				.returns<Messages[]>()
+				.returns<Message[]>()
 				.maybeSingle()
 			if (error) throw error
 			if (data) {

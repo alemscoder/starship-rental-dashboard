@@ -4,19 +4,15 @@ vaadin-dialog-overlay.new::part(header) {
 	padding-bottom: 0;
 }
 
-vaadin-dialog-overlay.edit vaadin-horizontal-layout {
-	--lumo-required-field-indicator: none;
-	width: 600px;
-  max-width: 100%;
-  align-items: baseline;
+vaadin-dialog-overlay.edit::part(overlay),
+vaadin-dialog-overlay.new::part(overlay) {
+	max-width: 54em;
+	min-width: 22em;
 }
-vaadin-dialog-overlay.new vaadin-vertical-layout {
+
+vaadin-dialog-overlay vaadin-horizontal-layout,
+vaadin-dialog-overlay vaadin-vertical-layout {
 	--lumo-required-field-indicator: none;
-	width: 300px;
-	max-width: 100%;
-	align-items: stretch;
-	padding: var(--lumo-space-l);
-	padding-top: 0;
 }
 
 vaadin-dialog-overlay.edit vaadin-avatar,
@@ -109,4 +105,22 @@ vaadin-dialog-overlay.edit #removeHeroImage[hidden],
 vaadin-dialog-overlay.new #removeAvatarImage[hidden] {
 	transition: scale .3s ease, display .3s ease allow-discrete;
 	scale: 0;
+}
+
+vaadin-dialog-overlay.new.ticket vaadin-date-picker,
+vaadin-dialog-overlay.edit.ticket vaadin-date-picker {
+	--vaadin-field-default-width: 10em
+}
+vaadin-dialog-overlay.new.ticket vaadin-time-picker,
+vaadin-dialog-overlay.edit.ticket vaadin-time-picker {
+	--vaadin-field-default-width: 6em
+}
+
+@media (width < 600px) {
+	vaadin-dialog-overlay.edit.ticket vaadin-select,
+	vaadin-dialog-overlay.edit.ticket vaadin-date-time-picker,
+	vaadin-dialog-overlay.edit.ticket vaadin-text-field,
+	vaadin-dialog-overlay.edit.ticket vaadin-number-field {
+		grid-column: 1 / -1;
+	}
 }

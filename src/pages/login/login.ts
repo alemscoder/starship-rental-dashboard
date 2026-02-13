@@ -26,7 +26,7 @@ export async function Login() {
 				${HeaderSection({
 					templateContent: html`
 						<vaadin-icon class="logo" src="/starship.svg"></vaadin-icon>
-						<h1>Control Panel</h1>
+						<h1>Admin Panel</h1>
 					`
 				})}
 				<vaadin-scroller theme="overflow-indicators" class="View-content">

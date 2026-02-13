@@ -1,42 +1,42 @@
 import { atom } from "nanostores"
 import type { 
-	Tickets, 
-	Customers, 
-	Locations, 
-	Starships, 
-	Messages, 
-	Employees 
+	Ticket, 
+	Customer, 
+	Location, 
+	Starship, 
+	Message, 
+	Employee 
 } from "../types.ts"
 
 /**
  * A nano store that holds an array of tickets.
  */
-export const ticketsStore = atom<Tickets[] | null>([])
+export const ticketsStore = atom<Ticket[] | null>([])
 
 /**
  * A nano store that holds an array of customers.
  */
-export const customersStore = atom<Customers[] | null>([])
+export const customersStore = atom<Customer[] | null>([])
 
 /**
  * A nano store that holds an array of locations.
  */
-export const locationsStore = atom<Locations[] | null>([])
+export const locationsStore = atom<Location[] | null>([])
 
 /**
  * A nano store that holds an array of starships.
  */
-export const starshipsStore = atom<Starships[] | null>([])
+export const starshipsStore = atom<Starship[] | null>([])
 
 /**
  * A nano store that holds an array of messages.
  */
-export const messagesStore = atom<Messages[] | null>([])
+export const messagesStore = atom<Message[] | null>([])
 
 /**
  * A nano store that holds an array of employees.
  */
-export const employeesStore = atom<Employees[] | null>([])
+export const employeesStore = atom<Employee[] | null>([])
 
 /**
  * A function that resets all grid stores to their initial state.

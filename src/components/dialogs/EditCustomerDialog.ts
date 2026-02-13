@@ -4,9 +4,9 @@ import { CustomersGrid } from "@components/grids/CustomersGrid.ts"
 import { ActionDialogBase } from "@base/dialogs/ActionDialogBase.ts"
 import { CustomerDetails } from "@components/panels/CustomerDetails.ts"
 import type { Button } from "@vaadin/button"
-import type { Customers } from "../../types.ts"
+import type { Customer } from "../../types.ts"
 
-export class EditCustomerDialog extends ActionDialogBase<Customers> {
+export class EditCustomerDialog extends ActionDialogBase<Customer> {
 
 	constructor() {
 		super("#editCustomerButton")
@@ -26,7 +26,7 @@ export class EditCustomerDialog extends ActionDialogBase<Customers> {
 		return "vaadin-dialog-overlay.edit.customer #saveEditedCustomer"
 	}
 
-	protected getFormFieldNames(fieldType?: string): (keyof Customers)[] {
+	protected getFormFieldNames(fieldType?: string): (keyof Customer)[] {
 		return [
 			"first_name", "last_name", "nationality", "language", "date_of_birth", 
 			"age", "driver_license", "email", "phone", "address"
@@ -41,13 +41,13 @@ export class EditCustomerDialog extends ActionDialogBase<Customers> {
 		return CustomersGrid.getInstance().getGridUrlRoute()
 	}
 
-	protected async handleSubmitRecord(event: SubmitEvent) {
+	protected handleSubmitRecord = async (event: SubmitEvent) => {
 		event.preventDefault()
 		const form = event.currentTarget as HTMLFormElement
 		const saveButton = this.formController.getActionButton(
 			this.getActionButtonSelector()
 		)
-		this.formController.handleDisabledButton(true, saveButton)
+		this.formController.handleButtonState(true, saveButton)
 		const formData = new FormData()
 		const customerData = this.formController.recordsFormData.get()
 		const formFieldNames = this.getFormFieldNames()
@@ -72,7 +72,7 @@ export class EditCustomerDialog extends ActionDialogBase<Customers> {
 		)
 	}
 
-	protected async handleDeleteRecord(event: MouseEvent) {
+	protected handleDeleteRecord = async (event: MouseEvent) => {
 		const deleteButton = event.currentTarget as Button
 		const formData = new FormData()
 		const customerDetails = this.getCustomerDetails()
@@ -87,7 +87,7 @@ export class EditCustomerDialog extends ActionDialogBase<Customers> {
 			"Are you sure you want to delete this customer? This action cannot be undone."
 		)
 		if (result === "confirm") {
-			this.formController.handleDisabledButton(true, deleteButton)
+			this.formController.handleButtonState(true, deleteButton)
 			const deleteRequest = this.formController.prepareDeleteFormData(
 				formData, 
 				customerDetails

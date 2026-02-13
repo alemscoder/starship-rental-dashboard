@@ -25,7 +25,7 @@ export async function handleLogin(event: LoginFormLoginEvent & { target: LoginFo
 	const passwordField = event.target.querySelector("vaadin-password-field")
 	const { username: email, password } = event.detail
 	const loginContainer = event.target.closest(".login-container")
-	loginContainer?.classList.add("logging-in")
+	loginContainer?.classList.add("loading")
 	try {
 		const { data, error } = await actions.auth.loginWithPassword({ email, password })
 		if (isInputError(error)) {
@@ -38,15 +38,15 @@ export async function handleLogin(event: LoginFormLoginEvent & { target: LoginFo
 				passwordField.errorMessage = error.fields.password[0]
 			}
 			event.target.disabled = false
-			loginContainer?.classList.remove("logging-in")
+			loginContainer?.classList.remove("loading")
 		}
 		if (error?.code === "UNAUTHORIZED") {
 			event.target.error = true
-			loginContainer?.classList.remove("logging-in")
+			loginContainer?.classList.remove("loading")
 		}
 		if (error?.code === "TIMEOUT") {
 			event.target.disabled = false
-			loginContainer?.classList.remove("logging-in")
+			loginContainer?.classList.remove("loading")
 			Toast({ message: error.message })
 		}
 		if (data) {
@@ -60,7 +60,7 @@ export async function handleLogin(event: LoginFormLoginEvent & { target: LoginFo
 		}
 	} catch (error: any) {
 		event.target.disabled = false
-		loginContainer?.classList.remove("logging-in")
+		loginContainer?.classList.remove("loading")
 		Toast({ message: `Network error connection: ${error.message}` })
 	}
 	
